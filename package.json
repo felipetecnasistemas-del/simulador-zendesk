@@ -1,0 +1,28 @@
+{
+  "name": "simulador-zendesk",
+  "version": "1.0.0",
+  "description": "Simulador de Projetos Zendesk - Plataforma SaaS",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build completed'",
+    "start": "vercel dev"
+  },
+  "keywords": [
+    "zendesk",
+    "simulator",
+    "saas",
+    "project-management"
+  ],
+  "author": "TECNA Sistemas",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

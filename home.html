@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projetos Zendesk - TECNA Sistemas</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Projetos Zendesk</h1>
+            <p class="subtitle">Sistema de Estimativa de Horas para Implementação</p>
+        </header>
+
+        <main class="home-content">
+            <div class="project-form-container">
+                <h2>Informações do Projeto</h2>
+                <form id="projectForm" class="project-form">
+                    <div class="form-group">
+                        <label for="clientName">Nome do Cliente:</label>
+                        <input type="text" id="clientName" name="clientName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientType">Tipo do Cliente:</label>
+                        <select id="clientType" name="clientType" required>
+                            <option value="">Selecione o tipo</option>
+                            <option value="base">Base</option>
+                            <option value="new-logo">New Logo</option>
+                        </select>
+                    </div>
+
+                    <!-- Perguntas condicionais para cliente Base -->
+                    <div id="baseClientQuestions" class="conditional-questions" style="display: none;">
+                        <div class="form-group">
+                            <label for="isTecnaClient">Já é cliente TECNA?</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="isTecnaClient" value="sim" required>
+                                    <span class="radio-custom"></span>
+                                    Sim
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="isTecnaClient" value="nao" required>
+                                    <span class="radio-custom"></span>
+                                    Não
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hasZendeskAdmin">Tem administrador Zendesk?</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="hasZendeskAdmin" value="sim" required>
+                                    <span class="radio-custom"></span>
+                                    Sim
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="hasZendeskAdmin" value="nao" required>
+                                    <span class="radio-custom"></span>
+                                    Não
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary" id="createProjectBtn">
+                            <span class="btn-icon">🚀</span>
+                            Criar Projeto
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="info-panel">
+                <h3>Sobre o Simulador</h3>
+                <div class="info-content">
+                    <div class="info-item">
+                        <span class="info-icon">📊</span>
+                        <div>
+                            <h4>Estimativa Precisa</h4>
+                            <p>Calcule horas de implementação baseadas no escopo do projeto</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">⚙️</span>
+                        <div>
+                            <h4>Configuração Flexível</h4>
+                            <p>Ajuste pesos e valores padrão conforme necessário</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">📋</span>
+                        <div>
+                            <h4>Relatório Detalhado</h4>
+                            <p>Visualize o escopo completo com breakdown de horas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="home.js"></script>
+</body>
+</html>

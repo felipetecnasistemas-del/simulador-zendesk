@@ -3,12 +3,8 @@
   "outputDirectory": ".",
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/home.html"
-    },
-    {
       "source": "/simulador",
-      "destination": "/index.html"
+      "destination": "/simulador.html"
     },
     {
       "source": "/api/(.*)",

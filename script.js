@@ -255,7 +255,7 @@ function displayProjectInfo() {
 
 // Função para voltar à página inicial
 function goToHome() {
-    window.location.href = 'home.html';
+    window.location.href = '/';
 }
 
 // Função para mostrar/ocultar abas

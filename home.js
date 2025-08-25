@@ -221,7 +221,7 @@ function navigateToSimulator() {
     
     // Simular delay para melhor UX
     setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.href = '/simulador';
     }, 1000);
 }
 

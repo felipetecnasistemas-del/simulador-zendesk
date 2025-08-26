@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Fuso Horário</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .result {
+            background: #e8f5e8;
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 4px solid #4caf50;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a87;
+        }
+    </style>
+</head>
+<body>
+    <h1>🕐 Teste de Fuso Horário - Brasil</h1>
+    
+    <div class="test-section">
+        <h3>Informações de Data/Hora Atual</h3>
+        <button onclick="testCurrentDateTime()">Testar Data/Hora Atual</button>
+        <div id="current-datetime-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Teste de Formatação de Datas</h3>
+        <button onclick="testDateFormatting()">Testar Formatação</button>
+        <div id="date-formatting-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Teste de Comparação de Datas</h3>
+        <button onclick="testDateComparison()">Testar Comparação</button>
+        <div id="date-comparison-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Simulação do Filtro de Data</h3>
+        <input type="date" id="test-start-date" value="2025-01-25">
+        <input type="date" id="test-end-date" value="2025-01-26">
+        <button onclick="testDateFilter()">Testar Filtro</button>
+        <button onclick="testSameDayFilter()">Testar Mesmo Dia (25/08 a 25/08)</button>
+        <div id="date-filter-results"></div>
+    </div>
+
+    <script>
+        function testCurrentDateTime() {
+            const now = new Date();
+            const results = document.getElementById('current-datetime-results');
+            
+            results.innerHTML = `
+                <div class="result">
+                    <strong>Data/Hora Atual:</strong><br>
+                    • new Date(): ${now}<br>
+                    • toISOString(): ${now.toISOString()}<br>
+                    • toLocaleDateString('pt-BR'): ${now.toLocaleDateString('pt-BR')}<br>
+                    • toLocaleString('pt-BR'): ${now.toLocaleString('pt-BR')}<br>
+                    • getTimezoneOffset(): ${now.getTimezoneOffset()} minutos<br>
+                    • Fuso horário: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
+                </div>
+            `;
+        }
+        
+        function testDateFormatting() {
+            const testDates = [
+                '2025-01-25T00:00:00.000Z',
+                '2025-01-25T23:59:59.999Z',
+                '2025-01-26T00:00:00.000Z',
+                '2025-01-26T03:00:00.000Z' // 3h UTC = meia-noite no Brasil (UTC-3)
+            ];
+            
+            const results = document.getElementById('date-formatting-results');
+            let html = '';
+            
+            testDates.forEach(dateStr => {
+                const date = new Date(dateStr);
+                html += `
+                    <div class="result">
+                        <strong>Data: ${dateStr}</strong><br>
+                        • toLocaleDateString('pt-BR'): ${date.toLocaleDateString('pt-BR')}<br>
+                        • toLocaleString('pt-BR'): ${date.toLocaleString('pt-BR')}<br>
+                        • getDate(): ${date.getDate()}<br>
+                        • getMonth(): ${date.getMonth() + 1}<br>
+                        • getFullYear(): ${date.getFullYear()}
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+        }
+        
+        function testDateComparison() {
+            const results = document.getElementById('date-comparison-results');
+            
+            // Simular datas como no filtro
+            const projectDateStr = '25/01/2025';
+            const startDateInput = '2025-01-25';
+            const endDateInput = '2025-01-26';
+            
+            // Função parseProjectDate (copiada do código)
+            function parseProjectDate(dateText) {
+                const parts = dateText.split('/');
+                if (parts.length === 3) {
+                    const date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    date.setHours(0, 0, 0, 0);
+                    return date;
+                }
+                const fallbackDate = new Date();
+                fallbackDate.setHours(0, 0, 0, 0);
+                return fallbackDate;
+            }
+            
+            const projectDate = parseProjectDate(projectDateStr);
+            // Converter datas de entrada para evitar problemas de fuso horário
+            const start = new Date(startDateInput + 'T00:00:00');
+            const end = new Date(endDateInput + 'T23:59:59');
+            
+            // Normalizar datas (nova lógica)
+            const projectDateOnly = new Date(projectDate.getFullYear(), projectDate.getMonth(), projectDate.getDate());
+            const startDateOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+            const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            
+            const isInRange = projectDateOnly >= startDateOnly && projectDateOnly <= endDateOnly;
+            
+            results.innerHTML = `
+                <div class="result">
+                    <strong>Teste de Comparação:</strong><br>
+                    • Data do projeto (texto): ${projectDateStr}<br>
+                    • Data do projeto (parseada): ${projectDate}<br>
+                    • Data do projeto (normalizada): ${projectDateOnly}<br>
+                    • Data início: ${start}<br>
+                    • Data início (normalizada): ${startDateOnly}<br>
+                    • Data fim: ${end}<br>
+                    • Data fim (normalizada): ${endDateOnly}<br>
+                    • Está no intervalo? <strong style="color: ${isInRange ? 'green' : 'red'}">${isInRange ? 'SIM' : 'NÃO'}</strong>
+                </div>
+            `;
+        }
+        
+        function testDateFilter() {
+            const startDateInput = document.getElementById('test-start-date').value;
+            const endDateInput = document.getElementById('test-end-date').value;
+            const results = document.getElementById('date-filter-results');
+            
+            if (!startDateInput || !endDateInput) {
+                results.innerHTML = '<div class="result" style="background: #ffe8e8; border-left-color: #f44336;">Por favor, selecione ambas as datas.</div>';
+                return;
+            }
+            
+            // Simular projetos com diferentes datas (incluindo 25/08 para teste específico)
+            const testProjects = [
+                { name: 'Projeto 25/08', dateText: '25/08/2024' },
+                { name: 'Projeto 26/08', dateText: '26/08/2024' },
+                { name: 'Projeto 24/08', dateText: '24/08/2024' },
+                { name: 'Projeto 27/08', dateText: '27/08/2024' },
+                { name: 'Projeto 25/01', dateText: '25/01/2025' },
+                { name: 'Projeto 26/01', dateText: '26/01/2025' }
+            ];
+            
+            function parseProjectDate(dateText) {
+                const parts = dateText.split('/');
+                if (parts.length === 3) {
+                    const date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    date.setHours(0, 0, 0, 0);
+                    return date;
+                }
+                return new Date();
+            }
+            
+            // Converter datas de entrada para evitar problemas de fuso horário
+            const start = new Date(startDateInput + 'T00:00:00');
+            const end = new Date(endDateInput + 'T23:59:59');
+            
+            let html = `
+                <div class="result">
+                    <strong>Filtro: ${startDateInput} até ${endDateInput}</strong><br>
+                    <strong>Resultados:</strong><br>
+            `;
+            
+            testProjects.forEach(project => {
+                const projectDate = parseProjectDate(project.dateText);
+                const projectDateOnly = new Date(projectDate.getFullYear(), projectDate.getMonth(), projectDate.getDate());
+                const startDateOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                
+                const shouldShow = projectDateOnly >= startDateOnly && projectDateOnly <= endDateOnly;
+                
+                html += `• ${project.name} (${project.dateText}): <strong style="color: ${shouldShow ? 'green' : 'red'}">${shouldShow ? 'INCLUÍDO' : 'EXCLUÍDO'}</strong><br>`;
+            });
+            
+            html += '</div>';
+            results.innerHTML = html;
+        }
+        
+        function testSameDayFilter() {
+            const results = document.getElementById('date-filter-results');
+            
+            // Teste específico: 25/08 a 25/08
+            const startDateInput = '2024-08-25';
+            const endDateInput = '2024-08-25';
+            
+            // Projetos de teste com foco no dia 25/08
+            const testProjects = [
+                { name: 'Projeto 25/08 - Manhã', dateText: '25/08/2024' },
+                { name: 'Projeto 25/08 - Tarde', dateText: '25/08/2024' },
+                { name: 'Projeto 24/08', dateText: '24/08/2024' },
+                { name: 'Projeto 26/08', dateText: '26/08/2024' }
+            ];
+            
+            function parseProjectDate(dateText) {
+                const parts = dateText.split('/');
+                if (parts.length === 3) {
+                    const date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    date.setHours(0, 0, 0, 0);
+                    return date;
+                }
+                return new Date();
+            }
+            
+            const start = new Date(startDateInput);
+            const end = new Date(endDateInput);
+            
+            let html = `
+                <div class="result">
+                    <strong>🎯 TESTE ESPECÍFICO: Mesmo Dia (25/08 a 25/08)</strong><br>
+                    <strong>Filtro: ${startDateInput} até ${endDateInput}</strong><br>
+                    <strong>Expectativa: Deve mostrar APENAS projetos do dia 25/08</strong><br><br>
+                    <strong>Resultados:</strong><br>
+            `;
+            
+            let projectsFound = 0;
+            
+            testProjects.forEach(project => {
+                 const projectDate = parseProjectDate(project.dateText);
+                 const projectDateOnly = new Date(projectDate.getFullYear(), projectDate.getMonth(), projectDate.getDate());
+                 const startDateOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                 const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                 
+                 const shouldShow = projectDateOnly >= startDateOnly && projectDateOnly <= endDateOnly;
+                 
+                 if (shouldShow) projectsFound++;
+                 
+                 const color = shouldShow ? 'green' : 'red';
+                 const status = shouldShow ? 'INCLUÍDO ✅' : 'EXCLUÍDO ❌';
+                 
+                 // Debug detalhado
+                 html += `• ${project.name}: <strong style="color: ${color}">${status}</strong><br>`;
+                 html += `  &nbsp;&nbsp;Data projeto: ${projectDateOnly.toLocaleDateString('pt-BR')} (${projectDateOnly.getTime()})<br>`;
+                 html += `  &nbsp;&nbsp;Data início: ${startDateOnly.toLocaleDateString('pt-BR')} (${startDateOnly.getTime()})<br>`;
+                 html += `  &nbsp;&nbsp;Data fim: ${endDateOnly.toLocaleDateString('pt-BR')} (${endDateOnly.getTime()})<br>`;
+                 html += `  &nbsp;&nbsp;Comparação: ${projectDateOnly.getTime()} >= ${startDateOnly.getTime()} && ${projectDateOnly.getTime()} <= ${endDateOnly.getTime()}<br><br>`;
+             });
+            
+            html += `<br><strong>Total de projetos encontrados: ${projectsFound}</strong>`;
+            html += `<br><strong style="color: ${projectsFound === 2 ? 'green' : 'red'}">Status: ${projectsFound === 2 ? 'SUCESSO - Filtro funcionando corretamente!' : 'ERRO - Verifique a lógica do filtro'}</strong>`;
+            html += '</div>';
+            
+            results.innerHTML = html;
+        }
+        
+        // Executar teste inicial
+        document.addEventListener('DOMContentLoaded', function() {
+            testCurrentDateTime();
+        });
+    </script>
+</body>
+</html>

@@ -6,8 +6,8 @@
     <title>Projetos Zendesk - TECNA Sistemas</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Supabase -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2.45.4"></script>
+    <script src="supabase-new-config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -17,93 +17,108 @@
         </header>
 
         <main class="home-content">
-            <div class="project-form-container">
-                <h2>Informações do Projeto</h2>
-                <form id="projectForm" class="project-form">
-                    <div class="form-group">
-                        <label for="clientName">Nome do Cliente:</label>
-                        <input type="text" id="clientName" name="clientName" required>
+            <!-- Container principal com layout em grid -->
+            <div class="main-grid">
+                <!-- Formulário de Projeto -->
+                <div class="project-form-container">
+                    <div class="section-header">
+                        <h2>Novo Projeto</h2>
                     </div>
-
-                    <div class="form-group">
-                        <label for="clientType">Tipo do Cliente:</label>
-                        <select id="clientType" name="clientType" required>
-                            <option value="">Selecione o tipo</option>
-                            <option value="base">Base</option>
-                            <option value="new-logo">New Logo</option>
-                        </select>
-                    </div>
-
-                    <!-- Perguntas condicionais para cliente Base -->
-                    <div id="baseClientQuestions" class="conditional-questions" style="display: none;">
+                    <form id="projectForm" class="project-form">
                         <div class="form-group">
-                            <label for="isTecnaClient">Já é cliente TECNA?</label>
-                            <div class="radio-group">
-                                <label class="radio-label">
-                                    <input type="radio" name="isTecnaClient" value="sim" required>
-                                    <span class="radio-custom"></span>
-                                    Sim
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="isTecnaClient" value="nao" required>
-                                    <span class="radio-custom"></span>
-                                    Não
-                                </label>
-                            </div>
+                            <label for="clientName">Nome do Cliente:</label>
+                            <input type="text" id="clientName" name="clientName" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="hasZendeskAdmin">Tem administrador Zendesk?</label>
-                            <div class="radio-group">
-                                <label class="radio-label">
-                                    <input type="radio" name="hasZendeskAdmin" value="sim" required>
-                                    <span class="radio-custom"></span>
-                                    Sim
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="hasZendeskAdmin" value="nao" required>
-                                    <span class="radio-custom"></span>
-                                    Não
-                                </label>
+                            <label for="clientType">Tipo do Cliente:</label>
+                            <select id="clientType" name="clientType" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="base">Base</option>
+                                <option value="new-logo">New Logo</option>
+                            </select>
+                        </div>
+
+                        <!-- Perguntas condicionais para cliente Base -->
+                        <div id="baseClientQuestions" class="conditional-questions" style="display: none;">
+                            <div class="form-group">
+                                <label for="isTecnaClient">Já é cliente TECNA?</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="isTecnaClient" value="sim" required>
+                                        <span class="radio-custom"></span>
+                                        Sim
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="isTecnaClient" value="nao" required>
+                                        <span class="radio-custom"></span>
+                                        Não
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="hasZendeskAdmin">Tem administrador Zendesk?</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="hasZendeskAdmin" value="sim" required>
+                                        <span class="radio-custom"></span>
+                                        Sim
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="hasZendeskAdmin" value="nao" required>
+                                        <span class="radio-custom"></span>
+                                        Não
+                                    </label>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary" id="createProjectBtn">
-                            <span class="btn-icon">🚀</span>
-                            Criar Projeto
-                        </button>
-                    </div>
-                </form>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="createProjectBtn">
+                                <span class="btn-icon">🚀</span>
+                                Criar Projeto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
             </div>
 
-            <div class="info-panel">
-                <h3>Sobre o Simulador</h3>
-                <div class="info-content">
-                    <div class="info-item">
-                        <span class="info-icon">📊</span>
-                        <div>
-                            <h4>Estimativa Precisa</h4>
-                            <p>Calcule horas de implementação baseadas no escopo do projeto</p>
-                        </div>
+            <!-- Seção de Projetos Salvos -->
+            <div id="existing-projects-section" class="existing-projects-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Projetos Recentes</h2>
+                </div>
+                
+                <!-- Filtro por Data -->
+                <div class="projects-filter">
+                    <label for="date-filter">Filtrar por data:</label>
+                    <select id="date-filter" class="date-filter-select">
+                        <option value="all">Todos os períodos</option>
+                        <option value="today">Hoje</option>
+                        <option value="week">Última semana</option>
+                        <option value="month">Último mês</option>
+                        <option value="custom">Período personalizado</option>
+                    </select>
+                    
+                    <div id="custom-date-range" class="custom-date-range" style="display: none;">
+                        <input type="date" id="start-date" class="date-input">
+                        <span>até</span>
+                        <input type="date" id="end-date" class="date-input">
+                        <button id="apply-filter" class="btn-filter">Aplicar</button>
                     </div>
-                    <div class="info-item">
-                        <span class="info-icon">⚙️</span>
-                        <div>
-                            <h4>Configuração Flexível</h4>
-                            <p>Ajuste pesos e valores padrão conforme necessário</p>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-icon">📋</span>
-                        <div>
-                            <h4>Relatório Detalhado</h4>
-                            <p>Visualize o escopo completo com breakdown de horas</p>
-                        </div>
+                </div>
+                
+                <!-- Lista de Projetos com Scroll -->
+                <div class="projects-container">
+                    <div id="projects-list" class="projects-list">
+                        <!-- Projetos serão carregados dinamicamente -->
                     </div>
                 </div>
             </div>
+
         </main>
     </div>
 

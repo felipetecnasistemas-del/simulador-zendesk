@@ -49,7 +49,7 @@ Plataforma SaaS para estimativa de horas e custos de implementação de projetos
 1. Abra o arquivo `supabase-config.js`
 2. Substitua:
    ```javascript
-   const SUPABASE_URL = 'https://seu-projeto.supabase.co';
+   const SUPABASE_URL = 'https://qngnbyueqdewjjzgbkun.supabase.co';
    const SUPABASE_ANON_KEY = 'sua-chave-anonima-aqui';
    ```
    Pelos valores copiados do Supabase.
@@ -90,7 +90,7 @@ Plataforma SaaS para estimativa de horas e custos de implementação de projetos
 
 1. No painel do Vercel, vá para **Settings** > **Environment Variables**
 2. Adicione:
-   - **Name**: `SUPABASE_URL`, **Value**: `https://seu-projeto.supabase.co`
+   - **Name**: `SUPABASE_URL`, **Value**: `https://qngnbyueqdewjjzgbkun.supabase.co`
    - **Name**: `SUPABASE_ANON_KEY`, **Value**: `sua-chave-anonima`
 3. Clique em "Save"
 4. Vá para **Deployments** e clique em "Redeploy"

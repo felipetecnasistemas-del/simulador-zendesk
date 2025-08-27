@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     loadSavedData();
     loadExistingProjects();
+    loadUsersForSelect();
 });
 
 // Configurar event listeners
@@ -120,10 +121,12 @@ function validateForm() {
 function collectFormData() {
     const clientName = document.getElementById('clientName').value.trim();
     const clientType = document.getElementById('clientType').value;
+    const projectUser = document.getElementById('projectUser').value;
     
     const projectData = {
         clientName,
         clientType,
+        projectUser,
         timestamp: new Date().toISOString()
     };
     
@@ -153,7 +156,8 @@ async function saveProjectData(projectData) {
             description: `Projeto para cliente ${projectData.clientName} - Tipo: ${projectData.clientType}`,
             client_type: projectData.clientType,
             is_tecna_client: projectData.isTecnaClient || false,
-            has_zendesk_admin: projectData.hasZendeskAdmin || false
+            has_zendesk_admin: projectData.hasZendeskAdmin || false,
+            user_id: projectData.projectUser || null
         });
         
         console.log('Resposta do createProject:', { data, error });
@@ -621,6 +625,35 @@ document.addEventListener('DOMContentLoaded', function() {
     setupDateFilter();
 });
 
+// Carregar usuários para o campo de seleção
+async function loadUsersForSelect() {
+    try {
+        const { data: users, error } = await SupabaseAPI.getUsers();
+        
+        if (error) {
+            console.error('Erro ao carregar usuários:', error);
+            return;
+        }
+        
+        const projectUserSelect = document.getElementById('projectUser');
+        if (projectUserSelect) {
+            // Limpar opções existentes (exceto a primeira)
+            projectUserSelect.innerHTML = '<option value="">Selecione um usuário</option>';
+            
+            // Adicionar usuários como opções
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = `${user.name} (${user.email})`;
+                projectUserSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+    }
+}
+
 window.clearSavedData = clearSavedData;
 window.loadProject = loadProject;
 window.filterProjectsByDate = filterProjectsByDate;
+window.loadUsersForSelect = loadUsersForSelect;

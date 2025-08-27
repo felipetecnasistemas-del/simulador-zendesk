@@ -179,17 +179,61 @@
         <div id="config-modal" class="config-modal">
             <div class="config-modal-content">
                 <div class="config-modal-header">
-                    <h2>Configuração - Pesos e Estimativas</h2>
+                    <h2>Configurações do Sistema</h2>
                     <button class="config-close" onclick="toggleConfigModal()">&times;</button>
                 </div>
-                <div class="config-section">
-                    <h3>Horas por Item</h3>
-                    <div class="config-grid" id="config-grid">
-                        <!-- Configurações serão carregadas via JavaScript -->
+                
+                <!-- Abas de Configuração -->
+                <div class="config-tabs">
+                    <button class="config-tab-button active" onclick="openConfigTab(event, 'estimates-tab')">Estimativas</button>
+                    <button class="config-tab-button" onclick="openConfigTab(event, 'users-tab')">Usuários</button>
+                </div>
+                
+                <!-- Aba de Estimativas -->
+                <div id="estimates-tab" class="config-tab-content active">
+                    <div class="config-section">
+                        <h3>Horas por Item</h3>
+                        <div class="config-grid" id="config-grid">
+                            <!-- Configurações serão carregadas via JavaScript -->
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="resetToDefaults()">Restaurar Padrões</button>
+                            <button type="button" class="btn-primary" onclick="saveConfiguration()">Salvar Configuração</button>
+                        </div>
                     </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary" onclick="resetToDefaults()">Restaurar Padrões</button>
-                        <button type="button" class="btn-primary" onclick="saveConfiguration()">Salvar Configuração</button>
+                </div>
+                
+                <!-- Aba de Usuários -->
+                <div id="users-tab" class="config-tab-content">
+                    <div class="config-section">
+                        <h3>Gerenciar Usuários</h3>
+                        
+                        <!-- Formulário de Cadastro de Usuário -->
+                        <div class="user-form-section">
+                            <h4>Adicionar Novo Usuário</h4>
+                            <form id="user-form" class="user-form">
+                                <div class="form-group">
+                                    <label for="user-name">Nome Completo:</label>
+                                    <input type="text" id="user-name" name="name" required placeholder="Digite o nome completo">
+                                </div>
+                                <div class="form-group">
+                                    <label for="user-email">E-mail:</label>
+                                    <input type="email" id="user-email" name="email" required placeholder="Digite o e-mail">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary">Adicionar Usuário</button>
+                                    <button type="button" class="btn-secondary" onclick="clearUserForm()">Limpar</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Lista de Usuários -->
+                        <div class="users-list-section">
+                            <h4>Usuários Cadastrados</h4>
+                            <div id="users-list" class="users-list">
+                                <!-- Lista será carregada via JavaScript -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

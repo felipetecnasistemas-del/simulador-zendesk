@@ -103,6 +103,98 @@ const SupabaseAPI = {
             .single();
 
         return { data, error };
+    },
+
+    // Usuários (dados simulados para teste)
+    async getUsers() {
+        try {
+            const response = await fetch('/api/users', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                return { data: [], error: result.error || 'Erro ao buscar usuários' };
+            }
+            
+            return { data: result.data, error: null };
+        } catch (error) {
+            console.error('Erro ao buscar usuários:', error);
+            return { data: [], error: error.message };
+        }
+    },
+
+    async createUser(userData) {
+        try {
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                return { data: null, error: result.error || 'Erro ao criar usuário' };
+            }
+            
+            return { data: result.data, error: null };
+        } catch (error) {
+            console.error('Erro ao criar usuário:', error);
+            return { data: null, error: error.message };
+        }
+    },
+
+    async updateUser(userId, userData) {
+        try {
+            const response = await fetch('/api/users', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: userId, ...userData })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                return { data: null, error: result.error || 'Erro ao atualizar usuário' };
+            }
+            
+            return { data: result.data, error: null };
+        } catch (error) {
+            console.error('Erro ao atualizar usuário:', error);
+            return { data: null, error: error.message };
+        }
+    },
+
+    async deleteUser(userId) {
+        try {
+            const response = await fetch('/api/users', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: userId })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                return { data: null, error: result.error || 'Erro ao deletar usuário' };
+            }
+            
+            return { data: result.data, error: null };
+        } catch (error) {
+            console.error('Erro ao deletar usuário:', error);
+            return { data: null, error: error.message };
+        }
     }
 };
 

@@ -711,8 +711,230 @@ function toggleConfigModal() {
     if (modal) {
         if (modal.style.display === 'none' || modal.style.display === '') {
             modal.style.display = 'flex';
+            loadUsers(); // Carregar usuários ao abrir o modal
         } else {
             modal.style.display = 'none';
         }
     }
 }
+
+// Função para alternar entre abas de configuração
+function openConfigTab(evt, tabName) {
+    // Esconder todas as abas
+    const tabContents = document.getElementsByClassName('config-tab-content');
+    for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+    }
+    
+    // Remover classe active de todos os botões
+    const tabButtons = document.getElementsByClassName('config-tab-button');
+    for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+    }
+    
+    // Mostrar aba selecionada e marcar botão como ativo
+    document.getElementById(tabName).classList.add('active');
+    evt.currentTarget.classList.add('active');
+    
+    // Carregar usuários se a aba de usuários foi selecionada
+    if (tabName === 'users-tab') {
+        loadUsers();
+    }
+}
+
+// Variável global para armazenar usuários
+let users = [];
+
+// Função para carregar usuários do banco
+async function loadUsers() {
+    try {
+        const { data, error } = await SupabaseAPI.getUsers();
+        
+        if (error) {
+            console.error('Erro ao carregar usuários:', error);
+            return;
+        }
+        
+        users = data || [];
+        displayUsers();
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+    }
+}
+
+// Função para exibir lista de usuários
+function displayUsers() {
+    const usersList = document.getElementById('users-list');
+    if (!usersList) return;
+    
+    if (users.length === 0) {
+        usersList.innerHTML = '<div class="users-empty">Nenhum usuário cadastrado</div>';
+        return;
+    }
+    
+    usersList.innerHTML = users.map(user => `
+        <div class="user-item" data-user-id="${user.id}">
+            <div class="user-info">
+                <div class="user-name">${user.name}</div>
+                <div class="user-email">${user.email}</div>
+            </div>
+            <div class="user-actions">
+                <button class="btn-edit" onclick="editUser(${user.id})">Editar</button>
+                <button class="btn-delete" onclick="deleteUser(${user.id})">Excluir</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Função para adicionar usuário
+async function addUser(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const userData = {
+        name: formData.get('name').trim(),
+        email: formData.get('email').trim().toLowerCase()
+    };
+    
+    // Validações
+    if (!userData.name || !userData.email) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+    }
+    
+    // Verificar se email já existe
+    const emailExists = users.some(user => user.email === userData.email);
+    if (emailExists) {
+        alert('Este e-mail já está cadastrado.');
+        return;
+    }
+    
+    try {
+        const { data, error } = await SupabaseAPI.createUser(userData);
+        
+        if (error) {
+            console.error('Erro ao adicionar usuário:', error);
+            alert('Erro ao adicionar usuário. Tente novamente.');
+            return;
+        }
+        
+        // Adicionar à lista local e atualizar display
+        users.push(data);
+        users.sort((a, b) => a.name.localeCompare(b.name));
+        displayUsers();
+        
+        // Limpar formulário
+        form.reset();
+        
+        alert('Usuário adicionado com sucesso!');
+    } catch (error) {
+        console.error('Erro ao adicionar usuário:', error);
+        alert('Erro ao adicionar usuário. Tente novamente.');
+    }
+}
+
+// Função para editar usuário
+function editUser(userId) {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    const newName = prompt('Nome:', user.name);
+    if (newName === null) return; // Cancelou
+    
+    const newEmail = prompt('E-mail:', user.email);
+    if (newEmail === null) return; // Cancelou
+    
+    // Validações
+    if (!newName.trim() || !newEmail.trim()) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+    }
+    
+    const emailExists = users.some(u => u.id !== userId && u.email === newEmail.trim().toLowerCase());
+    if (emailExists) {
+        alert('Este e-mail já está cadastrado.');
+        return;
+    }
+    
+    updateUser(userId, {
+        name: newName.trim(),
+        email: newEmail.trim().toLowerCase()
+    });
+}
+
+// Função para atualizar usuário no banco
+async function updateUser(userId, userData) {
+    try {
+        const { data, error } = await SupabaseAPI.updateUser(userId, userData);
+        
+        if (error) {
+            console.error('Erro ao atualizar usuário:', error);
+            alert('Erro ao atualizar usuário. Tente novamente.');
+            return;
+        }
+        
+        // Atualizar na lista local
+        const userIndex = users.findIndex(u => u.id === userId);
+        if (userIndex !== -1) {
+            users[userIndex] = data;
+            users.sort((a, b) => a.name.localeCompare(b.name));
+            displayUsers();
+        }
+        
+        alert('Usuário atualizado com sucesso!');
+    } catch (error) {
+        console.error('Erro ao atualizar usuário:', error);
+        alert('Erro ao atualizar usuário. Tente novamente.');
+    }
+}
+
+// Função para excluir usuário
+function deleteUser(userId) {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    if (!confirm(`Tem certeza que deseja excluir o usuário "${user.name}"?`)) {
+        return;
+    }
+    
+    removeUser(userId);
+}
+
+// Função para remover usuário do banco
+async function removeUser(userId) {
+    try {
+        const { error } = await SupabaseAPI.deleteUser(userId);
+        
+        if (error) {
+            console.error('Erro ao excluir usuário:', error);
+            alert('Erro ao excluir usuário. Tente novamente.');
+            return;
+        }
+        
+        // Remover da lista local
+        users = users.filter(u => u.id !== userId);
+        displayUsers();
+        
+        alert('Usuário excluído com sucesso!');
+    } catch (error) {
+        console.error('Erro ao excluir usuário:', error);
+        alert('Erro ao excluir usuário. Tente novamente.');
+    }
+}
+
+// Função para limpar formulário de usuário
+function clearUserForm() {
+    const form = document.getElementById('user-form');
+    if (form) {
+        form.reset();
+    }
+}
+
+// Adicionar event listener para o formulário de usuário quando o DOM carregar
+document.addEventListener('DOMContentLoaded', function() {
+    const userForm = document.getElementById('user-form');
+    if (userForm) {
+        userForm.addEventListener('submit', addUser);
+    }
+});

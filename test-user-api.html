@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API de Usuários</title>
+</head>
+<body>
+    <h1>Teste API de Usuários</h1>
+    
+    <div>
+        <h2>Criar Usuário</h2>
+        <button onclick="createTestUser()">Criar Usuário de Teste</button>
+    </div>
+    
+    <div>
+        <h2>Listar Usuários</h2>
+        <button onclick="listUsers()">Listar Usuários</button>
+        <div id="users-result"></div>
+    </div>
+    
+    <script>
+        async function createTestUser() {
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: 'João Silva',
+                        email: 'joao@teste.com'
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Resultado criar usuário:', result);
+                alert('Usuário criado: ' + JSON.stringify(result));
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro: ' + error.message);
+            }
+        }
+        
+        async function listUsers() {
+            try {
+                const response = await fetch('/api/users');
+                const result = await response.json();
+                console.log('Resultado listar usuários:', result);
+                
+                const div = document.getElementById('users-result');
+                div.innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

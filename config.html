@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Sistema Zendesk</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.45.4"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Configurações do Sistema</h1>
+                    <p class="subtitle">Gerenciar usuários e configurações de estimativas</p>
+                </div>
+                <div class="header-actions">
+                    <a href="index.html" class="config-icon" title="Voltar à página inicial">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="config-content">
+            <!-- Abas de Configuração -->
+            <div class="config-tabs">
+                <button class="config-tab-button active" onclick="openConfigTab(event, 'estimates-tab')">Estimativas</button>
+                <button class="config-tab-button" onclick="openConfigTab(event, 'users-tab')">Usuários</button>
+            </div>
+            
+            <!-- Aba de Estimativas -->
+            <div id="estimates-tab" class="config-tab-content active">
+                <div class="config-section">
+                    <h3>Horas por Item</h3>
+                    <div class="config-grid" id="config-grid">
+                        <!-- Configurações serão carregadas via JavaScript -->
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="resetToDefaults()">Restaurar Padrões</button>
+                        <button type="button" class="btn-primary" onclick="saveConfiguration()">Salvar Configuração</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Aba de Usuários -->
+            <div id="users-tab" class="config-tab-content">
+                <div class="config-section">
+                    <h3>Gerenciar Usuários</h3>
+                    
+                    <!-- Formulário de Cadastro de Usuário -->
+                    <div class="user-form-section">
+                        <h4>Adicionar Novo Usuário</h4>
+                        <form id="user-form" class="user-form">
+                            <div class="form-group">
+                                <label for="user-name">Nome Completo:</label>
+                                <input type="text" id="user-name" name="name" required placeholder="Digite o nome completo">
+                            </div>
+                            <div class="form-group">
+                                <label for="user-email">E-mail:</label>
+                                <input type="email" id="user-email" name="email" required placeholder="Digite o e-mail">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Adicionar Usuário</button>
+                                <button type="button" class="btn-secondary" onclick="clearUserForm()">Limpar</button>
+                                <button type="button" id="cancel-edit-btn" class="btn-cancel" onclick="cancelEdit()" style="display: none;">Cancelar Edição</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Lista de Usuários -->
+                    <div class="users-list-section">
+                        <h4>Usuários Cadastrados</h4>
+                        <div id="users-list" class="users-list">
+                            <!-- Lista será carregada via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Função para alternar entre abas
+        function openConfigTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("config-tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("config-tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        // Função para limpar formulário de usuário
+        function clearUserForm() {
+            document.getElementById('user-form').reset();
+        }
+
+        // Função para resetar configurações padrão
+        function resetToDefaults() {
+            if (confirm('Tem certeza que deseja restaurar as configurações padrão?')) {
+                // Implementar lógica de reset
+                alert('Configurações restauradas para os valores padrão!');
+            }
+        }
+
+        // Função para salvar configurações
+        function saveConfiguration() {
+            alert('Configurações salvas com sucesso!');
+        }
+
+        // Variável para controlar modo de edição
+        let editingUserId = null;
+
+        // Função para carregar usuários
+        async function loadUsers() {
+            try {
+                const result = await SupabaseAPI.getUsers();
+                if (result.error) {
+                    console.error('Erro ao carregar usuários:', result.error);
+                    return;
+                }
+                
+                const usersList = document.getElementById('users-list');
+                if (!usersList) return;
+                
+                if (!result.data || result.data.length === 0) {
+                    usersList.innerHTML = '<p class="no-users">Nenhum usuário cadastrado</p>';
+                    return;
+                }
+                
+                usersList.innerHTML = result.data.map(user => `
+                    <div class="user-item" data-user-id="${user.id}">
+                        <div class="user-info">
+                            <strong>${user.name}</strong>
+                            <span>${user.email}</span>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn-edit" onclick="editUser(${user.id}, '${user.name}', '${user.email}')">
+                                ✏️ Editar
+                            </button>
+                            <button class="btn-delete" onclick="deleteUser(${user.id})">
+                                🗑️ Excluir
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+            }
+        }
+
+        // Função para criar usuário
+        async function createUser(userData) {
+            try {
+                const result = await SupabaseAPI.createUser(userData);
+                if (result.error) {
+                    alert('Erro ao criar usuário: ' + result.error);
+                    return;
+                }
+                
+                alert('Usuário criado com sucesso!');
+                clearUserForm();
+                loadUsers();
+                // Atualizar lista suspensa na página principal
+                if (typeof window.loadUsersForSelect === 'function') {
+                    window.loadUsersForSelect();
+                }
+            } catch (error) {
+                console.error('Erro ao criar usuário:', error);
+                alert('Erro ao criar usuário: ' + error.message);
+            }
+        }
+
+        // Função para editar usuário
+        function editUser(id, name, email) {
+            editingUserId = id;
+            document.getElementById('user-name').value = name;
+            document.getElementById('user-email').value = email;
+            
+            const submitBtn = document.querySelector('#user-form button[type="submit"]');
+            submitBtn.textContent = 'Atualizar Usuário';
+            
+            const cancelBtn = document.getElementById('cancel-edit-btn');
+            if (cancelBtn) {
+                cancelBtn.style.display = 'inline-block';
+            }
+        }
+
+        // Função para cancelar edição
+        function cancelEdit() {
+            editingUserId = null;
+            clearUserForm();
+            
+            const submitBtn = document.querySelector('#user-form button[type="submit"]');
+            submitBtn.textContent = 'Adicionar Usuário';
+            
+            const cancelBtn = document.getElementById('cancel-edit-btn');
+            if (cancelBtn) {
+                cancelBtn.style.display = 'none';
+            }
+        }
+
+        // Função para atualizar usuário
+        async function updateUser(userData) {
+            try {
+                const result = await SupabaseAPI.updateUser(editingUserId, userData);
+                if (result.error) {
+                    alert('Erro ao atualizar usuário: ' + result.error);
+                    return;
+                }
+                
+                alert('Usuário atualizado com sucesso!');
+                cancelEdit();
+                loadUsers();
+                // Atualizar lista suspensa na página principal
+                if (typeof window.loadUsersForSelect === 'function') {
+                    window.loadUsersForSelect();
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar usuário:', error);
+                alert('Erro ao atualizar usuário: ' + error.message);
+            }
+        }
+
+        // Função para deletar usuário
+        async function deleteUser(userId) {
+            if (!confirm('Tem certeza que deseja excluir este usuário?')) {
+                return;
+            }
+            
+            try {
+                const result = await SupabaseAPI.deleteUser(userId);
+                if (result.error) {
+                    alert('Erro ao excluir usuário: ' + result.error);
+                    return;
+                }
+                
+                alert('Usuário excluído com sucesso!');
+                loadUsers();
+                // Atualizar lista suspensa na página principal
+                if (typeof window.loadUsersForSelect === 'function') {
+                    window.loadUsersForSelect();
+                }
+            } catch (error) {
+                console.error('Erro ao excluir usuário:', error);
+                alert('Erro ao excluir usuário: ' + error.message);
+            }
+        }
+
+        // Carregar dados quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar Supabase
+            if (typeof initSupabase === 'function') {
+                initSupabase();
+            }
+            
+            // Carregar usuários
+            loadUsers();
+            
+            // Configurar formulário de usuário
+            const userForm = document.getElementById('user-form');
+            if (userForm) {
+                userForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    const userData = {
+                        name: formData.get('name'),
+                        email: formData.get('email')
+                    };
+                    
+                    // Validação básica
+                    if (!userData.name || !userData.email) {
+                        alert('Por favor, preencha todos os campos.');
+                        return;
+                    }
+                    
+                    if (editingUserId) {
+                        updateUser(userData);
+                    } else {
+                        createUser(userData);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

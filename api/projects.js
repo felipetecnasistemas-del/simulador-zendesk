@@ -38,6 +38,7 @@ async function getProjects(req, res) {
     .from('projects')
     .select(`
       *,
+      users (id, name, email),
       project_products (
         product_id,
         products (name, icon)

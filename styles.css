@@ -1770,9 +1770,27 @@ body {
     font-size: 0.9em;
 }
 
+.project-meta {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .project-date {
     color: #868e96;
     font-size: 0.8em;
+}
+
+.project-user {
+    color: #495057;
+    font-size: 0.8em;
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .project-status {

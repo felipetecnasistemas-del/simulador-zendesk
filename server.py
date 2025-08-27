@@ -21,24 +21,32 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path.startswith('/api/users'):
             self.handle_users_api()
+        elif self.path.startswith('/api/projects'):
+            self.handle_projects_api()
         else:
             super().do_GET()
     
     def do_POST(self):
         if self.path.startswith('/api/users'):
             self.handle_users_api()
+        elif self.path.startswith('/api/projects'):
+            self.handle_projects_api()
         else:
             self.send_error(404)
     
     def do_PUT(self):
         if self.path.startswith('/api/users'):
             self.handle_users_api()
+        elif self.path.startswith('/api/projects'):
+            self.handle_projects_api()
         else:
             self.send_error(404)
     
     def do_DELETE(self):
         if self.path.startswith('/api/users'):
             self.handle_users_api()
+        elif self.path.startswith('/api/projects'):
+            self.handle_projects_api()
         else:
             self.send_error(404)
     
@@ -149,6 +157,105 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Erro ao deletar usuário: {e}")
             response = {'data': None, 'error': str(e)}
             self.wfile.write(json.dumps(response).encode())
+    
+    def handle_projects_api(self):
+        try:
+            if self.command == 'GET':
+                self.get_projects()
+            elif self.command == 'POST':
+                self.create_project()
+            elif self.command == 'PUT':
+                self.update_project()
+            elif self.command == 'DELETE':
+                self.delete_project()
+            else:
+                self.send_error(405)
+        except Exception as e:
+            print(f"Erro na API de projetos: {e}")
+            self.send_error(500, f"Erro interno: {str(e)}")
+    
+    def get_projects(self):
+        try:
+            # Buscar projetos com dados do usuário
+            response = supabase.table('projects').select(
+                '*,'
+                'users(id, name, email),'
+                'project_products(product_id, products(name, icon))'
+            ).order('created_at', desc=True).execute()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(response.data).encode())
+        except Exception as e:
+            print(f"Erro ao buscar projetos: {e}")
+            self.send_error(500, f"Erro ao buscar projetos: {str(e)}")
+    
+    def create_project(self):
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            response = supabase.table('projects').insert(data).execute()
+            
+            self.send_response(201)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(response.data).encode())
+        except Exception as e:
+            print(f"Erro ao criar projeto: {e}")
+            self.send_error(500, f"Erro ao criar projeto: {str(e)}")
+    
+    def update_project(self):
+        try:
+            # Extrair ID da URL
+            parsed_url = urlparse(self.path)
+            path_parts = parsed_url.path.split('/')
+            project_id = path_parts[-1] if len(path_parts) > 3 else None
+            
+            if not project_id:
+                self.send_error(400, "ID do projeto é obrigatório")
+                return
+            
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            response = supabase.table('projects').update(data).eq('id', project_id).execute()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(response.data).encode())
+        except Exception as e:
+            print(f"Erro ao atualizar projeto: {e}")
+            self.send_error(500, f"Erro ao atualizar projeto: {str(e)}")
+    
+    def delete_project(self):
+        try:
+            # Extrair ID da URL
+            parsed_url = urlparse(self.path)
+            path_parts = parsed_url.path.split('/')
+            project_id = path_parts[-1] if len(path_parts) > 3 else None
+            
+            if not project_id:
+                self.send_error(400, "ID do projeto é obrigatório")
+                return
+            
+            response = supabase.table('projects').delete().eq('id', project_id).execute()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(response.data).encode())
+        except Exception as e:
+            print(f"Erro ao deletar projeto: {e}")
+            self.send_error(500, f"Erro ao deletar projeto: {str(e)}")
 
 if __name__ == "__main__":
     PORT = 8000

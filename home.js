@@ -415,11 +415,17 @@ function displayExistingProjectsInHome(projects) {
             'pending': 'Pendente'
         }[project.status] || project.status;
         
+        // Obter nome do usuário responsável
+        const responsibleUser = project.users ? project.users.name : 'Não atribuído';
+        
         projectItem.innerHTML = `
             <div class="project-info">
                 <h4>${project.name}</h4>
                 <p>${project.description || 'Sem descrição'}</p>
-                <span class="project-date">${new Date(project.created_at).toLocaleDateString('pt-BR')}</span>
+                <div class="project-meta">
+                    <span class="project-date">${new Date(project.created_at).toLocaleDateString('pt-BR')}</span>
+                    <span class="project-user">👤 ${responsibleUser}</span>
+                </div>
             </div>
             <div class="project-status">
                 <span class="status-badge ${project.status}">${statusText}</span>

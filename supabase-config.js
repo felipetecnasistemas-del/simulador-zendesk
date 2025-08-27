@@ -37,6 +37,7 @@ const SupabaseAPI = {
                 .from('projects')
                 .select(`
                     *,
+                    users (id, name, email),
                     project_products (
                         product_id,
                         status,
@@ -68,6 +69,7 @@ const SupabaseAPI = {
                     client_type: projectData.client_type,
                     is_tecna_client: projectData.is_tecna_client || false,
                     has_zendesk_admin: projectData.has_zendesk_admin || false,
+                    user_id: projectData.user_id,
                     status: 'draft',
                     total_hours: 0,
                     total_value: 0

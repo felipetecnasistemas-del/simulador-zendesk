@@ -46,3 +46,16 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+
+# Test files
+test_*.py
+test-*.html
+debug_*.html
+create-test-*.html
+
+# Backup and temporary files
+*.bak
+*.tmp
+*.old
+*-backup.*
+*-old.*

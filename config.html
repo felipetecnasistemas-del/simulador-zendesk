@@ -1369,10 +1369,10 @@
                  let response;
                  if (currentEditingItemId) {
                      // Atualizar item existente
-                     response = await fetch(`/api/scope-items/${currentEditingItemId}`, {
-                         method: 'PUT',
+                     response = await fetch('/api/scope-items', {
+                         method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
-                         body: JSON.stringify(itemData)
+                         body: JSON.stringify({ ...itemData, id: currentEditingItemId, action: 'update' })
                      });
                  } else {
                      // Criar novo item
@@ -1411,10 +1411,10 @@
                     
                     let retryResponse;
                     if (currentEditingItemId) {
-                        retryResponse = await fetch(`/api/scope-items/${currentEditingItemId}`, {
-                            method: 'PUT',
+                        retryResponse = await fetch('/api/scope-items', {
+                            method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(itemData)
+                            body: JSON.stringify({ ...itemData, id: currentEditingItemId, action: 'update' })
                         });
                     } else {
                         retryResponse = await fetch('/api/scope-items', {
@@ -1546,10 +1546,10 @@
                 let response;
                 if (editingScopeItemId) {
                     // Atualizar item existente
-                    response = await fetch(`/api/scope-items/${editingScopeItemId}`, {
-                        method: 'PUT',
+                    response = await fetch('/api/scope-items', {
+                        method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(itemData)
+                        body: JSON.stringify({ ...itemData, id: editingScopeItemId, action: 'update' })
                     });
                 } else {
                     // Criar novo item
@@ -1675,10 +1675,10 @@
             const newStatus = !item.is_active;
             
             try {
-                const response = await fetch(`/api/scope-items/${itemId}`, {
-                    method: 'PUT',
+                const response = await fetch('/api/scope-items', {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...item, is_active: newStatus })
+                    body: JSON.stringify({ ...item, is_active: newStatus, id: itemId, action: 'update' })
                 });
                 
                 if (response.ok) {

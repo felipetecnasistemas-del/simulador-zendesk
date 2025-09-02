@@ -101,6 +101,12 @@ async function handlePost(req, res) {
             return await handleDelete(req, res);
         }
         
+        // Verificar se é uma ação de update
+        if (data && data.action === 'update') {
+            console.log('[POST] Redirecionando para handlePut');
+            return await handlePut(req, res);
+        }
+        
         // Caso contrário, criar novo item
         const { data: result, error } = await supabase
             .from('scope_items')
@@ -131,18 +137,26 @@ async function handlePut(req, res) {
         const { id } = req.query;
         const data = req.body;
         
-        if (!id) {
+        // Obter ID do query ou do body (para requisições via POST com action=update)
+        const itemId = id || data.id;
+        
+        if (!itemId) {
             console.log('[PUT] Erro: ID não fornecido');
             return res.status(400).json({ error: 'ID não fornecido' });
         }
         
-        console.log(`[PUT] Atualizando item ID: ${id}`);
-        console.log('[PUT] Dados para atualização:', data);
+        // Remover o ID e action dos dados para atualização
+        const updateData = { ...data };
+        delete updateData.id;
+        delete updateData.action;
+        
+        console.log(`[PUT] Atualizando item ID: ${itemId}`);
+        console.log('[PUT] Dados para atualização:', updateData);
         
         const { data: result, error } = await supabase
             .from('scope_items')
-            .update(data)
-            .eq('id', id)
+            .update(updateData)
+            .eq('id', itemId)
             .select()
             .single();
         
@@ -152,7 +166,7 @@ async function handlePut(req, res) {
         }
         
         if (!result) {
-            console.log(`[PUT] Item não encontrado: ${id}`);
+            console.log(`[PUT] Item não encontrado: ${itemId}`);
             return res.status(404).json({ error: 'Item não encontrado' });
         }
         

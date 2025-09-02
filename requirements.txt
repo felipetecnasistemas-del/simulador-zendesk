@@ -1,1 +1,5 @@
-supabase
+supabase==2.3.4
+postgrest==0.13.2
+realtime==1.0.4
+storage3==0.7.4
+supafunc==0.4.5

@@ -367,6 +367,63 @@
             margin: 32px 0;
         }
         
+        .project-totals {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .totals-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .total-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+        
+        .total-label {
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .total-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        
+        .total-price {
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .totals-summary {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .total-value {
+                font-size: 18px;
+            }
+            
+            .total-price {
+                font-size: 22px;
+            }
+        }
+        
         .scope-table {
             width: 100%;
             border-collapse: collapse;

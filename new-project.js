@@ -402,7 +402,104 @@ function displayScopePreview(scope) {
         tableBody.appendChild(row);
     });
     
+    // Calcular e exibir totais
+    calculateAndDisplayTotals(scope);
+    
     scopePreview.style.display = 'block';
+}
+
+// Função para calcular e exibir totais de horas e valor
+async function calculateAndDisplayTotals(scope) {
+    try {
+        // Buscar dados detalhados dos itens de escopo da API
+        const response = await fetch('/api/scope-items');
+        const result = await response.json();
+        
+        let totalHours = 0;
+        let totalMinutes = 0;
+        
+        if (result.success && result.data) {
+            const scopeItemsData = result.data;
+            
+            // Calcular total de horas baseado nos itens selecionados
+            scope.forEach(scopeItem => {
+                const itemData = scopeItemsData.find(item => item.name === scopeItem.item);
+                if (itemData) {
+                    const quantity = parseInt(scopeItem.quantity) || 0;
+                    const itemHours = (itemData.hours || 0) * quantity;
+                    const itemMinutes = (itemData.minutes || 0) * quantity;
+                    
+                    totalHours += itemHours;
+                    totalMinutes += itemMinutes;
+                }
+            });
+        } else {
+            // Fallback: usar estimativa baseada no número de agentes
+            const agentsCount = projectData.agentsCount || 10;
+            const rangeIndex = getScopeRangeIndex(agentsCount);
+            const estimatedHours = [8, 16, 32, 56, 80, 120][rangeIndex] || 32;
+            totalHours = estimatedHours;
+        }
+        
+        // Converter minutos extras para horas
+        totalHours += Math.floor(totalMinutes / 60);
+        totalMinutes = totalMinutes % 60;
+        
+        // Calcular valor total (R$ 280 por hora)
+        const hourlyRate = 280;
+        const totalValue = (totalHours + (totalMinutes / 60)) * hourlyRate;
+        
+        // Armazenar no projectData para uso posterior
+        projectData.totalScopeHours = totalHours + (totalMinutes / 60);
+        
+        // Exibir os totais
+        displayProjectTotals(totalHours, totalMinutes, totalValue);
+        
+    } catch (error) {
+        console.error('Erro ao calcular totais:', error);
+        // Fallback em caso de erro
+        const agentsCount = projectData.agentsCount || 10;
+        const rangeIndex = getScopeRangeIndex(agentsCount);
+        const estimatedHours = [8, 16, 32, 56, 80, 120][rangeIndex] || 32;
+        const totalValue = estimatedHours * 280;
+        
+        projectData.totalScopeHours = estimatedHours;
+        displayProjectTotals(estimatedHours, 0, totalValue);
+    }
+}
+
+// Função para exibir os totais calculados
+function displayProjectTotals(hours, minutes, totalValue) {
+    // Criar ou atualizar seção de totais
+    let totalsSection = document.getElementById('project-totals');
+    
+    if (!totalsSection) {
+        totalsSection = document.createElement('div');
+        totalsSection.id = 'project-totals';
+        totalsSection.className = 'project-totals';
+        
+        const scopePreview = document.getElementById('scope-preview');
+        scopePreview.appendChild(totalsSection);
+    }
+    
+    const timeText = minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`;
+    const formattedValue = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    }).format(totalValue);
+    
+    totalsSection.innerHTML = `
+        <div class="totals-summary">
+            <div class="total-item">
+                <span class="total-label">Tempo Total Estimado:</span>
+                <span class="total-value">${timeText}</span>
+            </div>
+            <div class="total-item">
+                <span class="total-label">Valor Total Estimado:</span>
+                <span class="total-value total-price">${formattedValue}</span>
+            </div>
+        </div>
+    `;
 }
 
 // Navegação entre etapas

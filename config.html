@@ -1639,7 +1639,10 @@
             
             try {
                 const response = await fetch(`/api/scope-items/${itemId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
                 if (response.ok) {

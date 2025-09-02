@@ -165,29 +165,21 @@ async function handleDelete(req, res) {
         
         console.log(`[DELETE] Excluindo usuário ID: ${userId}`);
         
-        const { data: result, error } = await supabase
+        const { error } = await supabase
             .from('users')
             .delete()
-            .eq('id', userId)
-            .select();
+            .eq('id', userId);
         
         if (error) {
             console.error('[DELETE] Erro do Supabase:', error);
             throw error;
         }
         
-        if (!result || result.length === 0) {
-            console.log(`[DELETE] Usuário não encontrado: ${userId}`);
-            return res.status(404).json({ error: 'Usuário não encontrado' });
-        }
-        
         console.log(`[DELETE] Usuário excluído com sucesso: ${userId}`);
-        console.log(`[DELETE] Resultado:`, result);
         
         return res.status(200).json({
             success: true,
-            message: 'Usuário excluído com sucesso',
-            data: result[0] || null
+            message: 'Usuário excluído com sucesso'
         });
     } catch (error) {
         console.error('[DELETE] Erro:', error);

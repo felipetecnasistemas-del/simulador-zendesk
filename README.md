@@ -120,12 +120,12 @@ Plataforma SaaS para estimativa de horas e custos de implementação de projetos
 ├── api/                    # Funções serverless
 │   ├── projects.js        # API de projetos
 │   ├── products.js        # API de produtos
-│   └── questionnaires.js  # API de questionários
+│ 
 ├── home.html              # Página inicial
 ├── index.html             # Simulador principal
 ├── home.js                # Scripts da página inicial
 ├── script.js              # Scripts principais
-├── questionnaires.js      # Questionários dos produtos
+
 ├── styles.css             # Estilos
 ├── supabase-config.js     # Configuração do Supabase
 ├── supabase-schema.sql    # Schema do banco

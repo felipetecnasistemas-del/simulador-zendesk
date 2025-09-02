@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Projeto - TECNA Sistemas</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .wizard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .wizard-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .wizard-steps {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 0 20px;
+            color: #ccc;
+        }
+        
+        .step.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .step.completed {
+            color: #28a745;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: 600;
+        }
+        
+        .step.active .step-number {
+            background: #667eea;
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: #28a745;
+            color: white;
+        }
+        
+        .wizard-content {
+            min-height: 400px;
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        .project-type-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .type-card {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .type-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1);
+        }
+        
+        .type-card.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .type-card-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .type-card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .type-card-description {
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .product-card {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .product-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1);
+        }
+        
+        .product-card.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .product-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .product-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .agents-input-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .agents-input {
+            width: 100%;
+            max-width: 200px;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .agents-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .scope-preview {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .scope-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .scope-table th,
+        .scope-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .scope-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .scope-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .wizard-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <div class="wizard-header">
+            <h1>Criar Novo Projeto</h1>
+            <p>Siga os passos para configurar seu projeto Zendesk</p>
+        </div>
+        
+        <div class="wizard-steps">
+            <div class="step active" id="step-indicator-1">
+                <div class="step-number">1</div>
+                <span>Tipo de Projeto</span>
+            </div>
+            <div class="step" id="step-indicator-2">
+                <div class="step-number">2</div>
+                <span>Informações Básicas</span>
+            </div>
+            <div class="step" id="step-indicator-3">
+                <div class="step-number">3</div>
+                <span>Seleção de Produtos</span>
+            </div>
+            <div class="step" id="step-indicator-4">
+                <div class="step-number">4</div>
+                <span>Configuração</span>
+            </div>
+        </div>
+        
+        <div class="wizard-content">
+            <!-- Etapa 1: Tipo de Projeto -->
+            <div class="step-content active" id="step-1">
+                <h2>Escolha o Tipo de Projeto</h2>
+                <p>Selecione como você deseja configurar o escopo do projeto:</p>
+                
+                <div class="project-type-cards">
+                    <div class="type-card" onclick="selectProjectType('standard')" id="type-standard">
+                        <div class="type-card-icon">📋</div>
+                        <div class="type-card-title">Escopo Padrão</div>
+                        <div class="type-card-description">
+                            Use nossos escopos pré-definidos baseados no número de agentes e produtos selecionados
+                        </div>
+                    </div>
+                    
+                    <div class="type-card" onclick="selectProjectType('custom')" id="type-custom">
+                        <div class="type-card-icon">⚙️</div>
+                        <div class="type-card-title">Proposta Customizada</div>
+                        <div class="type-card-description">
+                            Configure manualmente o escopo através de perguntas personalizadas
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info" id="custom-alert" style="display: none;">
+                    <strong>Proposta Customizada:</strong> Você poderá responder perguntas específicas para cada produto e configurar um escopo personalizado.
+                </div>
+            </div>
+            
+            <!-- Etapa 2: Informações Básicas -->
+            <div class="step-content" id="step-2">
+                <h2>Informações do Projeto</h2>
+                <p>Preencha as informações básicas do projeto:</p>
+                
+                <form id="project-basic-info">
+                    <div class="form-group">
+                        <label for="client-name">Nome do Cliente:</label>
+                        <input type="text" id="client-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-description">Descrição do Projeto:</label>
+                        <input type="text" id="project-description" placeholder="Opcional">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="client-type">Tipo do Cliente:</label>
+                        <select id="client-type" required>
+                            <option value="">Selecione o tipo</option>
+                            <option value="base">Base</option>
+                            <option value="new-logo">New Logo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-user">Usuário Responsável:</label>
+                        <select id="project-user" required>
+                            <option value="">Selecione um usuário</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Etapa 3: Seleção de Produtos -->
+            <div class="step-content" id="step-3">
+                <h2>Selecione os Produtos</h2>
+                <p>Escolha os produtos Zendesk que serão implementados:</p>
+                
+                <div class="products-grid" id="products-grid">
+                    <!-- Produtos serão carregados aqui -->
+                </div>
+            </div>
+            
+            <!-- Etapa 4: Configuração -->
+            <div class="step-content" id="step-4">
+                <h2>Configuração do Projeto</h2>
+                <div id="configuration-content">
+                    <!-- Conteúdo será carregado dinamicamente baseado nos produtos selecionados -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="wizard-actions">
+            <button class="btn btn-secondary" id="prev-btn" onclick="previousStep()" style="display: none;">← Anterior</button>
+            <div></div>
+            <button class="btn btn-primary" id="next-btn" onclick="nextStep()" disabled>Próximo →</button>
+        </div>
+    </div>
+    
+    <script src="new-project.js"></script>
+</body>
+</html>

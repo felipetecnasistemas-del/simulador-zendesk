@@ -470,7 +470,7 @@ function updateSelectedProductsDisplay() {
 
 // Função para abrir questionário do produto
 function openProductQuestionnaire(productId) {
-    // Usar a função do questionnaires.js
+    
     openQuestionnaireModal(productId);
 }
 
@@ -488,55 +488,97 @@ async function generateScope() {
         return;
     }
     
-    const config = clientTypeConfigs[projectData.clientType];
-    const hourlyRate = 280; // R$ 280 por hora
-    
-    // Consolidar fases de todos os produtos
-    const consolidatedPhases = {
-        'Gestão de Projetos': 0,
-        'Discovery & Design': 0,
-        'Configuração': 0,
-        'Testes e Ajustes': 0,
-        'Go live': 0
-    };
-    
-    // Somar horas de cada produto selecionado
-    selectedProducts.forEach(productId => {
-        const product = availableProducts[productId];
-        Object.entries(product.phases).forEach(([phaseKey, phaseData]) => {
-            consolidatedPhases[phaseData.name] += phaseData.baseHours;
-        });
-    });
-    
-    // Aplicar multiplicadores para clientes Base
-    if (projectData.clientType === 'base') {
-        if (projectData.isTecnaClient === 'yes') {
-            Object.keys(consolidatedPhases).forEach(phase => {
-                consolidatedPhases[phase] = Math.round(consolidatedPhases[phase] * config.multipliers['tecna-client']);
-            });
-        }
-        
-        if (projectData.hasZendeskAdmin === 'yes') {
-            Object.keys(consolidatedPhases).forEach(phase => {
-                consolidatedPhases[phase] = Math.round(consolidatedPhases[phase] * config.multipliers['has-admin']);
-            });
-        }
+    // Verificar se o modelo de faturamento foi selecionado
+    if (!currentBillingModel) {
+        scopeResults.innerHTML = '<p style="color: #dc3545;">Selecione um modelo de faturamento para gerar o escopo.</p>';
+        return;
     }
     
-    // Aplicar multiplicador para New Logo
-    if (projectData.clientType === 'new-logo') {
-        Object.keys(consolidatedPhases).forEach(phase => {
-            consolidatedPhases[phase] = Math.round(consolidatedPhases[phase] * config.multipliers['new-client']);
-        });
+    // Salvar respostas das perguntas antes de gerar o escopo
+    try {
+        await saveProjectAnswers();
+    } catch (error) {
+        console.error('Erro ao salvar respostas das perguntas:', error);
+        scopeResults.innerHTML = '<p style="color: #dc3545;">Erro ao salvar respostas das perguntas. Tente novamente.</p>';
+        return;
     }
     
-    // Calcular totais
-    let totalHours = 0;
-    Object.values(consolidatedPhases).forEach(hours => {
-        totalHours += hours;
-    });
+    let scopeData;
     
-    const totalValue = totalHours * hourlyRate;
+    try {
+        // Usar o novo sistema de cálculo baseado no modelo de faturamento
+        if (currentBillingModel === 'fixed_scope') {
+            // Para escopo fechado, usar a API que calcula baseado nas regras padrão
+            scopeData = await SupabaseAPI.calculateFixedScope({
+                project_id: projectData.id,
+                products: Array.from(selectedProducts),
+                answers: projectAnswers
+            });
+        } else {
+            // Para Time & Materials, usar o cálculo tradicional
+            const config = clientTypeConfigs[projectData.clientType];
+            const hourlyRate = 280; // R$ 280 por hora
+            
+            // Consolidar fases de todos os produtos
+            const consolidatedPhases = {
+                'Gestão de Projetos': 0,
+                'Discovery & Design': 0,
+                'Configuração': 0,
+                'Testes e Ajustes': 0,
+                'Go live': 0
+            };
+            
+            // Somar horas de cada produto selecionado
+            selectedProducts.forEach(productId => {
+                const product = availableProducts[productId];
+                Object.entries(product.phases).forEach(([phaseKey, phaseData]) => {
+                    consolidatedPhases[phaseData.name] += phaseData.baseHours;
+                });
+            });
+            
+            // Aplicar multiplicadores para clientes Base
+            if (projectData.clientType === 'base') {
+                if (projectData.isTecnaClient === 'yes') {
+                    Object.keys(consolidatedPhases).forEach(phase => {
+                        consolidatedPhases[phase] = Math.round(consolidatedPhases[phase] * config.multipliers['tecna-client']);
+                    });
+                }
+                
+                if (projectData.hasZendeskAdmin === 'yes') {
+                    Object.keys(consolidatedPhases).forEach(phase => {
+                        consolidatedPhases[phase] = Math.round(consolidatedPhases[phase] * config.multipliers['has-admin']);
+                    });
+                }
+            }
+            
+            // Aplicar multiplicador para New Logo
+            if (projectData.clientType === 'new-logo') {
+                Object.keys(consolidatedPhases).forEach(phase => {
+                    consolidatedPhases[phase] = Math.round(consolidatedPhases[phase] * config.multipliers['new-client']);
+                });
+            }
+            
+            // Calcular totais
+            let totalHours = 0;
+            Object.values(consolidatedPhases).forEach(hours => {
+                totalHours += hours;
+            });
+            
+            const totalValue = totalHours * hourlyRate;
+            
+            scopeData = {
+                phases: consolidatedPhases,
+                total_hours: totalHours,
+                total_value: totalValue,
+                hourly_rate: hourlyRate,
+                complexity_level: 'medium' // Padrão para Time & Materials
+            };
+        }
+    } catch (error) {
+        console.error('Erro ao calcular escopo:', error);
+        scopeResults.innerHTML = '<p style="color: #dc3545;">Erro ao calcular escopo. Tente novamente.</p>';
+        return;
+    }
     
     // Gerar HTML da tabela
     let tableHTML = `
@@ -551,7 +593,7 @@ async function generateScope() {
                 <tbody>
     `;
     
-    Object.entries(consolidatedPhases).forEach(([phase, hours]) => {
+    Object.entries(scopeData.phases).forEach(([phase, hours]) => {
         tableHTML += `
             <tr>
                 <td>${phase}</td>
@@ -563,11 +605,11 @@ async function generateScope() {
     tableHTML += `
                     <tr class="total-row">
                         <td><strong>Total</strong></td>
-                        <td><strong>${totalHours}</strong></td>
+                        <td><strong>${scopeData.total_hours}</strong></td>
                     </tr>
                     <tr class="value-row">
                         <td><strong>Valor total</strong></td>
-                        <td><strong>R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+                        <td><strong>R$ ${scopeData.total_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
                     </tr>
                 </tbody>
             </table>
@@ -577,6 +619,8 @@ async function generateScope() {
             <h3>Resumo do Projeto</h3>
             <p><strong>Cliente:</strong> ${projectData.clientName}</p>
             <p><strong>Tipo:</strong> ${projectData.clientType === 'base' ? 'Base' : 'New Logo'}</p>
+            <p><strong>Modelo de Faturamento:</strong> ${currentBillingModel === 'time_materials' ? 'Time & Materials' : 'Escopo Fechado'}</p>
+            ${scopeData.complexity_level ? `<p><strong>Nível de Complexidade:</strong> ${scopeData.complexity_level === 'low' ? 'Baixa' : scopeData.complexity_level === 'medium' ? 'Média' : 'Alta'}</p>` : ''}
             <p><strong>Produtos:</strong> ${[...selectedProducts].map(id => availableProducts[id].name).join(', ')}</p>
             ${projectData.clientType === 'base' ? `
                 <p><strong>Cliente Tecna:</strong> ${projectData.isTecnaClient === 'yes' ? 'Sim' : 'Não'}</p>
@@ -590,26 +634,30 @@ async function generateScope() {
     // Salvar resultados no Supabase
     try {
         if (projectData.id) {
-            const scopeData = {
+            const projectUpdateData = {
                 project_id: projectData.id,
-                phases: consolidatedPhases,
-                total_hours: totalHours,
-                total_value: totalValue,
-                hourly_rate: hourlyRate,
+                phases: scopeData.phases,
+                total_hours: scopeData.total_hours,
+                total_value: scopeData.total_value,
+                hourly_rate: scopeData.hourly_rate || 280,
                 selected_products: Array.from(selectedProducts),
                 product_configurations: productConfigurations,
                 client_type: projectData.clientType,
                 is_tecna_client: projectData.isTecnaClient,
-                has_zendesk_admin: projectData.hasZendeskAdmin
+                has_zendesk_admin: projectData.hasZendeskAdmin,
+                billing_model: currentBillingModel,
+                complexity_level: scopeData.complexity_level
             };
             
-            await SupabaseAPI.saveQuestionnaireAnswers(scopeData);
+            await SupabaseAPI.saveQuestionnaireAnswers(projectUpdateData);
             
-            // Atualizar status do projeto
+            // Atualizar status do projeto com os novos campos
             await SupabaseAPI.updateProject(projectData.id, {
                 status: 'completed',
-                total_hours: totalHours,
-                total_value: totalValue
+                total_hours: scopeData.total_hours,
+                total_value: scopeData.total_value,
+                billing_model: currentBillingModel,
+                complexity_level: scopeData.complexity_level
             });
         }
     } catch (error) {

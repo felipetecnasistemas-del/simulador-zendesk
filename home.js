@@ -271,7 +271,7 @@ function loadSavedData() {
     }
 }
 
-// Navegar para o simulador
+// Navegar para o simulador (agora integrado no index.html)
 function navigateToSimulator(projectId = null) {
     console.log('=== DEBUG NAVIGATE TO SIMULATOR ===');
     console.log('projectId recebido:', projectId);
@@ -291,16 +291,34 @@ function navigateToSimulator(projectId = null) {
         console.log('currentProjectId final:', currentProjectId);
         console.log('localStorage currentProjectId:', localStorage.getItem('currentProjectId'));
         
-        if (currentProjectId) {
-            const finalUrl = `/simulador.html?projectId=${currentProjectId}`;
-            console.log('URL final de redirecionamento:', finalUrl);
-            console.log('===================================');
-            window.location.href = finalUrl;
+        // Ocultar o formulário de criação e mostrar o editor de projetos
+        const projectFormContainer = document.querySelector('.project-form-container');
+        const projectListContainer = document.querySelector('.project-list-container');
+        const projectEditor = document.querySelector('.project-editor');
+        
+        if (projectFormContainer) projectFormContainer.style.display = 'none';
+        if (projectListContainer) projectListContainer.style.display = 'none';
+        if (projectEditor) projectEditor.style.display = 'block';
+        
+        // Se há um projectId, abrir o projeto para edição
+        if (currentProjectId && typeof openProject === 'function') {
+            console.log('Abrindo projeto para edição:', currentProjectId);
+            openProject(currentProjectId);
         } else {
-            console.log('Redirecionando sem projectId');
-            console.log('===================================');
-            window.location.href = '/simulador.html';
+            console.log('Mostrando editor vazio para novo projeto');
+            // Mostrar o editor vazio para criação de novo projeto
+            if (typeof showProjectEditor === 'function') {
+                showProjectEditor();
+            }
         }
+        
+        // Resetar botão
+        if (createProjectBtn) {
+            createProjectBtn.innerHTML = 'Criar Projeto';
+            createProjectBtn.disabled = false;
+        }
+        
+        console.log('===================================');
     }, 1000);
 }
 
@@ -381,8 +399,8 @@ function displayExistingProjectsInHome(projects) {
     console.log('=== INICIANDO EXIBIÇÃO DOS PROJETOS ===');
     console.log('Projetos recebidos para exibição:', projects);
     
-    const existingProjectsSection = document.querySelector('.existing-projects-section');
-    const projectsList = document.querySelector('.projects-list');
+    const existingProjectsSection = document.getElementById('projectsList');
+    const projectsList = document.getElementById('projectsGrid');
     
     console.log('Elementos encontrados:', {
         existingProjectsSection: !!existingProjectsSection,

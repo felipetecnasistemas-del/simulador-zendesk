@@ -10,9 +10,13 @@
       "destination": "/api/projects.js"
     },
     {
-            "source": "/api/scope-items(.*)",
-            "destination": "/api/scope-items.js"
-        },
+      "source": "/api/scope-items",
+      "destination": "/api/scope-items.js"
+    },
+    {
+      "source": "/api/scope-items/(.*)",
+      "destination": "/api/scope-items.js?id=$1"
+    },
     {
       "source": "/api/default-projects(.*)",
       "destination": "/api/default-projects.js"

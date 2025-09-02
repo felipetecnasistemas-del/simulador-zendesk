@@ -154,14 +154,55 @@ class handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             body = json.loads(post_data.decode('utf-8'))
             
-            # Marcar projeto como template/padrão
-            body['is_template'] = True
-            result = supabase.table('projects').insert(body).execute()
+            # Extrair os dados dos itens de escopo do corpo da requisição
+            items_data = body.get('data', [])
             
-            self.send_response(201)
+            if not items_data:
+                self.send_response(400)
+                self._set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Nenhum dado fornecido"}).encode('utf-8'))
+                return
+            
+            # Atualizar os valores dos itens de escopo na tabela scope_items
+            updated_items = []
+            
+            for item in items_data:
+                item_name = item.get('name')
+                item_values = item.get('values', [])
+                
+                if not item_name or len(item_values) != 6:
+                    continue
+                
+                # Buscar o item existente pelo nome
+                existing_item = supabase.table('scope_items').select('*').eq('name', item_name).execute()
+                
+                if existing_item.data:
+                    # Atualizar os valores nas colunas agents_*
+                    update_data = {
+                        'agents_10': item_values[0],
+                        'agents_20': item_values[1],
+                        'agents_40': item_values[2],
+                        'agents_70': item_values[3],
+                        'agents_100': item_values[4],
+                        'agents_more': item_values[5]
+                    }
+                    
+                    result = supabase.table('scope_items').update(update_data).eq('name', item_name).execute()
+                    
+                    if result.data:
+                        updated_items.extend(result.data)
+            
+            response_data = {
+                "success": True,
+                "message": f"Atualizados {len(updated_items)} itens de escopo",
+                "data": updated_items
+            }
+            
+            self.send_response(200)
             self._set_cors_headers()
             self.end_headers()
-            self.wfile.write(json.dumps(result.data).encode('utf-8'))
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
             self.send_response(500)

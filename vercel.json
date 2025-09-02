@@ -1,29 +1,31 @@
 {
   "version": 2,
-  "functions": {
-    "api/users.py": {
-      "runtime": "python3.12"
+  "builds": [
+    {
+      "src": "api/users.py",
+      "use": "@vercel/python"
     },
-    "api/projects.py": {
-      "runtime": "python3.12"
+    {
+      "src": "api/projects.py",
+      "use": "@vercel/python"
     }
-  },
-  "rewrites": [
+  ],
+  "routes": [
     {
-      "source": "/api/users",
-      "destination": "/api/users.py"
+      "src": "/api/users",
+      "dest": "/api/users.py"
     },
     {
-      "source": "/api/projects(.*)",
-      "destination": "/api/projects.py"
+      "src": "/api/projects(.*)",
+      "dest": "/api/projects.py"
     },
     {
-      "source": "/simulador",
-      "destination": "/simulador.html"
+      "src": "/simulador",
+      "dest": "/simulador.html"
     },
     {
-      "source": "/(.*)",
-      "destination": "/$1"
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }

@@ -675,7 +675,15 @@
         async function loadProjects() {
             try {
                 const response = await fetch('/api/projects');
-                const projects = await response.json();
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    console.error('Erro ao carregar projetos:', result.error || 'Erro desconhecido');
+                    return;
+                }
+                
+                // Se result é um array, usar diretamente; se tem propriedade data, usar result.data
+                const projects = Array.isArray(result) ? result : (result.data || result || []);
                 allProjects = projects;
                 originalProjects = projects;
                 filteredProjects = [...projects];
@@ -1372,6 +1380,11 @@
                 const response = await fetch('/api/users');
                 const result = await response.json();
                 
+                if (!response.ok) {
+                    console.error('Erro ao carregar usuários:', result.error || 'Erro desconhecido');
+                    return;
+                }
+                
                 const userFilter = document.getElementById('userFilter');
                 if (!userFilter) {
                     console.log('Elemento userFilter não encontrado');
@@ -1380,8 +1393,8 @@
                 
                 userFilter.innerHTML = '<option value="all">Todos os usuários</option>';
                 
-                // A API retorna {data: [...], error: null}
-                const users = result.data || [];
+                // Se result é um array, usar diretamente; se tem propriedade data, usar result.data
+                const users = Array.isArray(result) ? result : (result.data || result || []);
                 
                 // Verificar se users é um array
                 if (Array.isArray(users)) {

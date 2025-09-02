@@ -123,7 +123,9 @@ const SupabaseAPI = {
                 return { data: [], error: result.error || 'Erro ao buscar usuários' };
             }
             
-            return { data: result.data, error: null };
+            // Se result é um array, usar diretamente; se tem propriedade data, usar result.data
+            const userData = Array.isArray(result) ? result : (result.data || result);
+            return { data: userData, error: null };
         } catch (error) {
             console.error('Erro ao buscar usuários:', error);
             return { data: [], error: error.message };

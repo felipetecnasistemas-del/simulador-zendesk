@@ -116,34 +116,50 @@ class handler(BaseHTTPRequestHandler):
         print(f"[PUT] Método PUT chamado. Path: {self.path}")
         print(f"[PUT] Headers: {dict(self.headers)}")
         try:
+            print(f"[PUT] Etapa 1: Verificando conexão com Supabase")
             if not supabase:
+                print(f"[PUT] ERRO: Supabase não conectado")
                 self.send_response(500)
                 self._set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": "Erro de conexão com banco"}).encode('utf-8'))
                 return
+            print(f"[PUT] Etapa 1: Conexão com Supabase OK")
 
+            print(f"[PUT] Etapa 2: Extraindo ID da URL")
             url_parts = urlparse(self.path)
             path_parts = url_parts.path.split('/')
+            print(f"[PUT] URL parts: {path_parts}")
             
             if len(path_parts) > 3 and path_parts[3]:
                 item_id = path_parts[3]
+                print(f"[PUT] Etapa 2: ID extraído com sucesso: {item_id}")
+                
+                print(f"[PUT] Etapa 3: Lendo dados do corpo da requisição")
                 content_length = int(self.headers['Content-Length'])
+                print(f"[PUT] Content-Length: {content_length}")
                 post_data = self.rfile.read(content_length)
                 body = json.loads(post_data.decode('utf-8'))
+                print(f"[PUT] Etapa 3: Dados recebidos: {body}")
                 
+                print(f"[PUT] Etapa 4: Executando atualização no Supabase")
+                print(f"[PUT] Query: UPDATE scope_items SET {body} WHERE id = {item_id}")
                 result = supabase.table('scope_items').update(body).eq('id', item_id).execute()
+                print(f"[PUT] Etapa 4: Resultado da atualização: {result}")
                 
                 response_data = {
                     "success": True,
                     "data": result.data
                 }
                 
+                print(f"[PUT] Etapa 5: Enviando resposta de sucesso: {response_data}")
                 self.send_response(200)
                 self._set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                print(f"[PUT] Etapa 5: Resposta enviada com sucesso")
             else:
+                print(f"[PUT] ERRO: ID não encontrado na URL. Path parts: {path_parts}")
                 self.send_response(400)
                 self._set_cors_headers()
                 self.end_headers()
@@ -159,39 +175,58 @@ class handler(BaseHTTPRequestHandler):
         print(f"[DELETE] Método DELETE chamado. Path: {self.path}")
         print(f"[DELETE] Headers: {dict(self.headers)}")
         try:
+            print(f"[DELETE] Etapa 1: Verificando conexão com Supabase")
             if not supabase:
-                print("[DELETE] Erro: Supabase não conectado")
+                print("[DELETE] ERRO: Supabase não conectado")
                 self.send_response(500)
                 self._set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": "Erro de conexão com banco"}).encode('utf-8'))
                 return
+            print(f"[DELETE] Etapa 1: Conexão com Supabase OK")
 
+            print(f"[DELETE] Etapa 2: Extraindo ID da URL")
             url_parts = urlparse(self.path)
             path_parts = url_parts.path.split('/')
+            print(f"[DELETE] URL parts: {url_parts}")
             print(f"[DELETE] Path parts: {path_parts}")
             
             if len(path_parts) > 3 and path_parts[3]:
                 item_id = path_parts[3]
-                print(f"[DELETE] Tentando deletar item ID: {item_id}")
+                print(f"[DELETE] Etapa 2: ID extraído com sucesso: {item_id}")
                 
-                # Marcar como inativo ao invés de deletar
+                print(f"[DELETE] Etapa 3: Verificando se item existe antes da exclusão")
+                check_result = supabase.table('scope_items').select('id, name, is_active').eq('id', item_id).execute()
+                print(f"[DELETE] Etapa 3: Resultado da verificação: {check_result}")
+                
+                if not check_result.data:
+                    print(f"[DELETE] ERRO: Item com ID {item_id} não encontrado")
+                    self.send_response(404)
+                    self._set_cors_headers()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Item não encontrado"}).encode('utf-8'))
+                    return
+                
+                print(f"[DELETE] Etapa 4: Item encontrado, executando exclusão lógica")
+                print(f"[DELETE] Query: UPDATE scope_items SET is_active = false WHERE id = {item_id}")
                 result = supabase.table('scope_items').update({'is_active': False}).eq('id', item_id).execute()
-                print(f"[DELETE] Resultado da operação: {result}")
+                print(f"[DELETE] Etapa 4: Resultado da exclusão: {result}")
                 
                 response_data = {
                     "success": True,
                     "message": "Item de escopo removido com sucesso",
-                    "item_id": item_id
+                    "item_id": item_id,
+                    "affected_rows": len(result.data) if result.data else 0
                 }
                 
-                print(f"[DELETE] Enviando resposta de sucesso: {response_data}")
+                print(f"[DELETE] Etapa 5: Enviando resposta de sucesso: {response_data}")
                 self.send_response(200)
                 self._set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                print(f"[DELETE] Etapa 5: Resposta enviada com sucesso")
             else:
-                print(f"[DELETE] Erro: ID não encontrado no path. Path parts: {path_parts}")
+                print(f"[DELETE] ERRO: ID não encontrado no path. Path parts: {path_parts}")
                 self.send_response(400)
                 self._set_cors_headers()
                 self.end_headers()

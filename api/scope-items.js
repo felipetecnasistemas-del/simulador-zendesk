@@ -95,6 +95,13 @@ async function handlePost(req, res) {
         
         console.log('[POST] Dados recebidos:', data);
         
+        // Verificar se é uma ação de delete
+        if (data && data.action === 'delete') {
+            console.log('[POST] Redirecionando para handleDelete');
+            return await handleDelete(req, res);
+        }
+        
+        // Caso contrário, criar novo item
         const { data: result, error } = await supabase
             .from('scope_items')
             .insert(data)

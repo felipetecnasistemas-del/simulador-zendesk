@@ -113,6 +113,8 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
     
     def do_PUT(self):
+        print(f"[PUT] Método PUT chamado. Path: {self.path}")
+        print(f"[PUT] Headers: {dict(self.headers)}")
         try:
             if not supabase:
                 self.send_response(500)
@@ -155,6 +157,7 @@ class handler(BaseHTTPRequestHandler):
     
     def do_DELETE(self):
         print(f"[DELETE] Método DELETE chamado. Path: {self.path}")
+        print(f"[DELETE] Headers: {dict(self.headers)}")
         try:
             if not supabase:
                 print("[DELETE] Erro: Supabase não conectado")

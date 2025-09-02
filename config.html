@@ -1457,7 +1457,17 @@
             try {
                 const response = await fetch('/api/scope-items');
                 if (response.ok) {
-                    scopeItemsData = await response.json();
+                    const result = await response.json();
+                    // Verificar se a resposta tem o formato {success: true, data: [...]}
+                    if (result.success && Array.isArray(result.data)) {
+                        scopeItemsData = result.data;
+                    } else if (Array.isArray(result)) {
+                        scopeItemsData = result;
+                    } else {
+                        console.error('Formato de resposta inesperado:', result);
+                        loadSampleScopeItems();
+                        return;
+                    }
                     renderScopeItems();
                 } else {
                     console.error('Erro ao carregar itens de escopo:', response.statusText);

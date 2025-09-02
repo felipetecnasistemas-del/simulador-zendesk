@@ -18,6 +18,10 @@
       "destination": "/api/scope-items.js?id=$1"
     },
     {
+      "source": "/api/scope-items-delete/(.*)",
+      "destination": "/api/scope-items-delete.js?id=$1"
+    },
+    {
       "source": "/api/default-projects(.*)",
       "destination": "/api/default-projects.js"
     },

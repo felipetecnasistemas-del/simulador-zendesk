@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/api/users",
-      "destination": "/api/users.py"
+      "destination": "/api/users.js"
     },
     {
       "source": "/api/projects(.*)",
-      "destination": "/api/projects.py"
+      "destination": "/api/projects.js"
     },
     {
             "source": "/api/scope-items(.*)",
@@ -15,7 +15,7 @@
         },
     {
       "source": "/api/default-projects(.*)",
-      "destination": "/api/default-projects.py"
+      "destination": "/api/default-projects.js"
     },
     {
       "source": "/simulador",

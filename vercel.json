@@ -1,31 +1,29 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/*.py",
-      "use": "@vercel/python"
+  "functions": {
+    "api/users.py": {
+      "runtime": "python3.9"
     },
-    {
-      "src": "**/*",
-      "use": "@vercel/static"
+    "api/projects.py": {
+      "runtime": "python3.9"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/users",
-      "dest": "/api/users.py"
+      "source": "/api/users",
+      "destination": "/api/users.py"
     },
     {
-      "src": "/api/projects(.*)",
-      "dest": "/api/projects.py"
+      "source": "/api/projects(.*)",
+      "destination": "/api/projects.py"
     },
     {
-      "src": "/simulador",
-      "dest": "/simulador.html"
+      "source": "/simulador",
+      "destination": "/simulador.html"
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/(.*)",
+      "destination": "/$1"
     }
   ]
 }

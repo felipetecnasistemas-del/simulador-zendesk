@@ -1,8 +1,6 @@
-from http.server import BaseHTTPRequestHandler
 import json
-import os
 from supabase import create_client, Client
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 # Configuração do Supabase
 SUPABASE_URL = "https://qngnbyueqdewjjzgbkun.supabase.co"
@@ -14,150 +12,103 @@ except Exception as e:
     print(f"Erro ao conectar com Supabase: {e}")
     supabase = None
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        try:
-            if not supabase:
-                self.send_response(500)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": "Erro de conexão com banco"}).encode())
-                return
+def handler(request):
+    # Headers CORS
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Content-Type': 'application/json'
+    }
+    
+    # Handle OPTIONS request (CORS preflight)
+    if request.method == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': headers,
+            'body': ''
+        }
+    
+    try:
+        if not supabase:
+            return {
+                'statusCode': 500,
+                'headers': headers,
+                'body': json.dumps({"error": "Erro de conexão com banco"})
+            }
 
-            parsed_url = urlparse(self.path)
-            query_params = parse_qs(parsed_url.query)
-            
-            # Buscar projetos com informações do usuário
-            query = supabase.table('projects').select('*, users(name)')
-            
-            if 'user_id' in query_params:
-                user_id = query_params['user_id'][0]
-                query = query.eq('user_id', user_id)
-            
-            response = query.execute()
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(response.data).encode())
-            
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e)}).encode())
-
-    def do_POST(self):
-        try:
-            if not supabase:
-                self.send_response(500)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": "Erro de conexão com banco"}).encode())
-                return
-
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-            
-            response = supabase.table('projects').insert(data).execute()
-            
-            self.send_response(201)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(response.data).encode())
-            
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e)}).encode())
-
-    def do_PUT(self):
-        try:
-            if not supabase:
-                self.send_response(500)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": "Erro de conexão com banco"}).encode())
-                return
-
-            # Extrair ID do projeto da URL
-            path_parts = self.path.split('/')
-            if len(path_parts) >= 3:
-                project_id = path_parts[2]
-                
-                content_length = int(self.headers['Content-Length'])
-                post_data = self.rfile.read(content_length)
-                data = json.loads(post_data.decode('utf-8'))
-                
-                response = supabase.table('projects').update(data).eq('id', project_id).execute()
-                
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps(response.data).encode())
+        # Parse URL para obter parâmetros
+        url_parts = urlparse(request.url)
+        path_parts = url_parts.path.split('/')
+        query_params = parse_qs(url_parts.query)
+        
+        if request.method == 'GET':
+            # Se há ID na URL, buscar projeto específico
+            if len(path_parts) > 3 and path_parts[3]:
+                project_id = path_parts[3]
+                response = supabase.table('projects').select('*').eq('id', project_id).execute()
             else:
-                self.send_response(400)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": "ID do projeto não fornecido"}).encode())
+                # Buscar todos os projetos
+                response = supabase.table('projects').select('*').execute()
             
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e)}).encode())
-
-    def do_DELETE(self):
-        try:
-            if not supabase:
-                self.send_response(500)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": "Erro de conexão com banco"}).encode())
-                return
-
-            # Extrair ID do projeto da URL
-            path_parts = self.path.split('/')
-            if len(path_parts) >= 3:
-                project_id = path_parts[2]
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps(response.data)
+            }
+            
+        elif request.method == 'POST':
+            body = json.loads(request.body)
+            response = supabase.table('projects').insert(body).execute()
+            return {
+                'statusCode': 201,
+                'headers': headers,
+                'body': json.dumps(response.data)
+            }
+            
+        elif request.method == 'PUT':
+            if len(path_parts) > 3 and path_parts[3]:
+                project_id = path_parts[3]
+                body = json.loads(request.body)
+                response = supabase.table('projects').update(body).eq('id', project_id).execute()
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps(response.data)
+                }
+            else:
+                return {
+                    'statusCode': 400,
+                    'headers': headers,
+                    'body': json.dumps({"error": "ID do projeto é obrigatório para atualização"})
+                }
                 
+        elif request.method == 'DELETE':
+            if len(path_parts) > 3 and path_parts[3]:
+                project_id = path_parts[3]
                 response = supabase.table('projects').delete().eq('id', project_id).execute()
-                
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"message": "Projeto deletado com sucesso"}).encode())
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({"message": "Projeto deletado com sucesso"})
+                }
             else:
-                self.send_response(400)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": "ID do projeto não fornecido"}).encode())
+                return {
+                    'statusCode': 400,
+                    'headers': headers,
+                    'body': json.dumps({"error": "ID do projeto é obrigatório para exclusão"})
+                }
             
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e)}).encode())
-
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
+        else:
+            return {
+                'statusCode': 405,
+                'headers': headers,
+                'body': json.dumps({"error": "Método não permitido"})
+            }
+            
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({"error": str(e)})
+        }

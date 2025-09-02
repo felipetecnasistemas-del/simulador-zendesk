@@ -2,10 +2,10 @@
   "version": 2,
   "functions": {
     "api/users.py": {
-      "runtime": "python3.9"
+      "runtime": "python3.12"
     },
     "api/projects.py": {
-      "runtime": "python3.9"
+      "runtime": "python3.12"
     }
   },
   "rewrites": [

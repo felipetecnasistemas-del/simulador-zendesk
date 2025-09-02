@@ -1,5 +1,7 @@
 import json
+from http.server import BaseHTTPRequestHandler
 from supabase import create_client, Client
+from urllib.parse import parse_qs, urlparse
 
 # Configuração do Supabase
 SUPABASE_URL = "https://qngnbyueqdewjjzgbkun.supabase.co"
@@ -11,38 +13,73 @@ except Exception as e:
     print(f"Erro ao conectar com Supabase: {e}")
     supabase = None
 
-def handler(request, response):
-    # Headers CORS
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-    response.headers['Content-Type'] = 'application/json'
+class handler(BaseHTTPRequestHandler):
+    def _set_cors_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Content-Type', 'application/json')
     
-    # Handle OPTIONS request (CORS preflight)
-    if request.method == 'OPTIONS':
-        response.status_code = 200
-        return response.json('')
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self._set_cors_headers()
+        self.end_headers()
+        return
     
-    try:
-        if not supabase:
-            response.status_code = 500
-            return response.json({"error": "Erro de conexão com banco"})
+    def do_GET(self):
+        try:
+            if not supabase:
+                self.send_response(500)
+                self._set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Erro de conexão com banco"}).encode('utf-8'))
+                return
 
-        if request.method == 'GET':
-            result = supabase.table('users').select('*').execute()
-            response.status_code = 200
-            return response.json(result.data)
+            # Parse URL para obter parâmetros
+            url_parts = urlparse(self.path)
+            path_parts = url_parts.path.split('/')
             
-        elif request.method == 'POST':
-            body = json.loads(request.body)
+            # Se há ID na URL, buscar usuário específico
+            if len(path_parts) > 3 and path_parts[3]:
+                user_id = path_parts[3]
+                result = supabase.table('users').select('*').eq('id', user_id).execute()
+            else:
+                # Buscar todos os usuários
+                result = supabase.table('users').select('*').execute()
+            
+            self.send_response(200)
+            self._set_cors_headers()
+            self.end_headers()
+            self.wfile.write(json.dumps(result.data).encode('utf-8'))
+            
+        except Exception as e:
+            self.send_response(500)
+            self._set_cors_headers()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+    
+    def do_POST(self):
+        try:
+            if not supabase:
+                self.send_response(500)
+                self._set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Erro de conexão com banco"}).encode('utf-8'))
+                return
+
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            body = json.loads(post_data.decode('utf-8'))
+            
             result = supabase.table('users').insert(body).execute()
-            response.status_code = 201
-            return response.json(result.data)
             
-        else:
-            response.status_code = 405
-            return response.json({"error": "Método não permitido"})
+            self.send_response(201)
+            self._set_cors_headers()
+            self.end_headers()
+            self.wfile.write(json.dumps(result.data).encode('utf-8'))
             
-    except Exception as e:
-        response.status_code = 500
-        return response.json({"error": str(e)})
+        except Exception as e:
+            self.send_response(500)
+            self._set_cors_headers()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))

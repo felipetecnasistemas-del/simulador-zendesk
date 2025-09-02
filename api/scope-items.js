@@ -21,28 +21,30 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
-    // Verificar método DELETE especificamente
-    if (req.method === 'DELETE') {
-        console.log('[DELETE] Método DELETE detectado');
-        return await handleDelete(req, res);
-    }
-
     try {
         const { method, query, body } = req;
-        const { id } = query;
+        const { id, _method } = query;
 
         console.log(`[${method}] Método ${method} chamado para ID: ${id}`);
+        console.log(`[${method}] _method parameter: ${_method}`);
 
-        switch (method) {
+        // Suporte para method override via query parameter
+        const actualMethod = _method ? _method.toUpperCase() : method;
+        console.log(`[${method}] Método real a ser processado: ${actualMethod}`);
+
+        switch (actualMethod) {
             case 'GET':
                 return await handleGet(req, res);
             case 'POST':
                 return await handlePost(req, res);
             case 'PUT':
                 return await handlePut(req, res);
+            case 'DELETE':
+                console.log('[DELETE] Processando DELETE via method override');
+                return await handleDelete(req, res);
             default:
-                console.log(`[ERROR] Método ${method} não permitido`);
-                return res.status(405).json({ error: `Método ${method} não permitido` });
+                console.log(`[ERROR] Método ${actualMethod} não permitido`);
+                return res.status(405).json({ error: `Método ${actualMethod} não permitido` });
         }
     } catch (error) {
         console.error('[ERROR] Erro geral:', error);

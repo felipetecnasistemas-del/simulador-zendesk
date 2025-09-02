@@ -1638,12 +1638,12 @@
             }
             
             try {
-                const response = await fetch(`/api/scope-items/${itemId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+                const response = await fetch(`/api/scope-items/${itemId}?_method=DELETE`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
                 
                 if (response.ok) {
                     loadScopeItems();

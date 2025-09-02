@@ -169,15 +169,14 @@ async function handleDelete(req, res) {
             .from('users')
             .delete()
             .eq('id', userId)
-            .select()
-            .single();
+            .select();
         
         if (error) {
             console.error('[DELETE] Erro do Supabase:', error);
             throw error;
         }
         
-        if (!result) {
+        if (!result || result.length === 0) {
             console.log(`[DELETE] Usuário não encontrado: ${userId}`);
             return res.status(404).json({ error: 'Usuário não encontrado' });
         }

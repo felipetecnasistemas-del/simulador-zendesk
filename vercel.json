@@ -11,7 +11,7 @@
     },
     {
       "source": "/api/scope-items(.*)",
-      "destination": "/api/scope-items.py"
+      "destination": "/api/scope-items-flask.py"
     },
     {
       "source": "/api/default-projects(.*)",

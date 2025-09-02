@@ -13,7 +13,66 @@ except Exception as e:
     print(f"Erro ao conectar com Supabase: {e}")
     supabase = None
 
-class handler(BaseHTTPRequestHandler):
+def handler(request, response):
+    """Vercel serverless function handler"""
+    print(f"[HANDLER] Método: {request.method}, Path: {request.url}")
+    
+    # Headers CORS
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Content-Type'] = 'application/json'
+    
+    if request.method == 'OPTIONS':
+        print(f"[OPTIONS] Método OPTIONS chamado")
+        response.status_code = 200
+        return
+    
+    elif request.method == 'DELETE':
+        print(f"[DELETE] Método DELETE chamado. URL: {request.url}")
+        try:
+            if not supabase:
+                print("[DELETE] Erro: Supabase não conectado")
+                response.status_code = 500
+                return json.dumps({"error": "Erro de conexão com banco"})
+
+            # Extrair ID da URL
+            url_parts = request.url.split('/')
+            print(f"[DELETE] URL parts: {url_parts}")
+            
+            if len(url_parts) > 0:
+                item_id = url_parts[-1]  # Último elemento da URL
+                print(f"[DELETE] Tentando deletar item ID: {item_id}")
+                
+                # Marcar como inativo ao invés de deletar
+                result = supabase.table('scope_items').update({'is_active': False}).eq('id', item_id).execute()
+                print(f"[DELETE] Resultado da operação: {result}")
+                
+                response_data = {
+                    "success": True,
+                    "message": "Item de escopo removido com sucesso",
+                    "item_id": item_id
+                }
+                
+                print(f"[DELETE] Enviando resposta de sucesso: {response_data}")
+                response.status_code = 200
+                return json.dumps(response_data)
+            else:
+                print(f"[DELETE] Erro: ID não encontrado na URL")
+                response.status_code = 400
+                return json.dumps({"error": "ID do item é obrigatório para remoção"})
+                
+        except Exception as e:
+            print(f"[DELETE] Exceção capturada: {str(e)}")
+            response.status_code = 500
+            return json.dumps({"error": str(e)})
+    
+    else:
+        print(f"[ERROR] Método não suportado: {request.method}")
+        response.status_code = 405
+        return json.dumps({"error": "Método não permitido"})
+
+class handler_old(BaseHTTPRequestHandler):
     def _set_cors_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')

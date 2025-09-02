@@ -159,17 +159,43 @@ async function handlePut(req, res) {
 }
 
 async function handleDelete(req, res) {
+    console.log('[DELETE] Iniciando função handleDelete');
+    
     try {
         const { id } = req.query;
+        console.log('[DELETE] ID recebido:', id);
+        console.log('[DELETE] Query completa:', req.query);
         
         if (!id) {
-            console.log('[DELETE] Erro: ID não fornecido');
-            return res.status(400).json({ error: 'ID não fornecido' });
+            console.log('[DELETE] ID não fornecido');
+            return res.status(400).json({ error: 'ID é obrigatório' });
         }
         
-        console.log(`[DELETE] Excluindo item ID: ${id}`);
+        console.log(`[DELETE] Tentando excluir item ID: ${id}`);
+        console.log('[DELETE] Cliente Supabase:', !!supabase);
+        
+        // Teste simples primeiro - verificar se o item existe
+        console.log('[DELETE] Verificando se item existe...');
+        const { data: existingItem, error: selectError } = await supabase
+            .from('scope_items')
+            .select('id, name, is_active')
+            .eq('id', id)
+            .single();
+            
+        if (selectError) {
+            console.error('[DELETE] Erro ao verificar item:', selectError);
+            return res.status(500).json({ error: 'Erro ao verificar item: ' + selectError.message });
+        }
+        
+        if (!existingItem) {
+            console.log(`[DELETE] Item não encontrado: ${id}`);
+            return res.status(404).json({ error: 'Item não encontrado' });
+        }
+        
+        console.log('[DELETE] Item encontrado:', existingItem);
         
         // Exclusão lógica - marcar como inativo
+        console.log('[DELETE] Executando update...');
         const { data: result, error } = await supabase
             .from('scope_items')
             .update({ is_active: false })
@@ -178,23 +204,19 @@ async function handleDelete(req, res) {
             .single();
         
         if (error) {
-            console.error('[DELETE] Erro do Supabase:', error);
-            throw error;
+            console.error('[DELETE] Erro do Supabase no update:', error);
+            return res.status(500).json({ error: 'Erro no update: ' + error.message });
         }
         
-        if (!result) {
-            console.log(`[DELETE] Item não encontrado: ${id}`);
-            return res.status(404).json({ error: 'Item não encontrado' });
-        }
-        
-        console.log(`[DELETE] Item excluído com sucesso: ${id}`);
+        console.log(`[DELETE] Update executado com sucesso:`, result);
         
         return res.status(200).json({
             success: true,
-            message: 'Item excluído com sucesso'
+            message: 'Item excluído com sucesso',
+            data: result
         });
     } catch (error) {
-        console.error('[DELETE] Erro:', error);
-        return res.status(500).json({ error: error.message });
+        console.error('[DELETE] Erro geral:', error);
+        return res.status(500).json({ error: 'Erro interno: ' + error.message });
     }
 }

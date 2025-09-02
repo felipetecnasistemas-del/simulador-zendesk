@@ -10,9 +10,9 @@
       "destination": "/api/projects.py"
     },
     {
-      "source": "/api/scope-items(.*)",
-      "destination": "/api/scope-items.py"
-    },
+            "source": "/api/scope-items(.*)",
+            "destination": "/api/scope-items.js"
+        },
     {
       "source": "/api/default-projects(.*)",
       "destination": "/api/default-projects.py"

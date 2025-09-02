@@ -28,11 +28,13 @@ export default async function handler(req, res) {
         console.log(`[${method}] Método ${method} chamado para ID: ${id}`);
         console.log(`[${method}] _method parameter: ${_method}`);
 
-        // Suporte para method override via query parameter
-        const actualMethod = _method ? _method.toUpperCase() : method;
-        console.log(`[${method}] Método real a ser processado: ${actualMethod}`);
+        // Verificar se é uma operação de delete via POST
+        if (method === 'POST' && body && body.action === 'delete') {
+            console.log('[DELETE] Processando delete via POST com action=delete');
+            return await handleDelete(req, res);
+        }
 
-        switch (actualMethod) {
+        switch (method) {
             case 'GET':
                 return await handleGet(req, res);
             case 'POST':
@@ -40,11 +42,11 @@ export default async function handler(req, res) {
             case 'PUT':
                 return await handlePut(req, res);
             case 'DELETE':
-                console.log('[DELETE] Processando DELETE via method override');
+                console.log('[DELETE] Processando DELETE direto');
                 return await handleDelete(req, res);
             default:
-                console.log(`[ERROR] Método ${actualMethod} não permitido`);
-                return res.status(405).json({ error: `Método ${actualMethod} não permitido` });
+                console.log(`[ERROR] Método ${method} não permitido`);
+                return res.status(405).json({ error: `Método ${method} não permitido` });
         }
     } catch (error) {
         console.error('[ERROR] Erro geral:', error);
@@ -161,64 +163,49 @@ async function handlePut(req, res) {
 }
 
 async function handleDelete(req, res) {
-    console.log('[DELETE] Iniciando função handleDelete');
-    
     try {
-        const { id } = req.query;
-        console.log('[DELETE] ID recebido:', id);
-        console.log('[DELETE] Query completa:', req.query);
+        const { query, body } = req;
+        let itemId;
         
-        if (!id) {
-            console.log('[DELETE] ID não fornecido');
+        // Obter ID do query parameter ou do body
+        if (query.id) {
+            itemId = query.id;
+        } else if (body && body.id) {
+            itemId = body.id;
+        }
+        
+        console.log('[DELETE] Tentando deletar item ID:', itemId);
+        
+        if (!itemId) {
             return res.status(400).json({ error: 'ID é obrigatório' });
         }
         
-        console.log(`[DELETE] Tentando excluir item ID: ${id}`);
-        console.log('[DELETE] Cliente Supabase:', !!supabase);
-        
-        // Teste simples primeiro - verificar se o item existe
-        console.log('[DELETE] Verificando se item existe...');
-        const { data: existingItem, error: selectError } = await supabase
-            .from('scope_items')
-            .select('id, name, is_active')
-            .eq('id', id)
-            .single();
-            
-        if (selectError) {
-            console.error('[DELETE] Erro ao verificar item:', selectError);
-            return res.status(500).json({ error: 'Erro ao verificar item: ' + selectError.message });
-        }
-        
-        if (!existingItem) {
-            console.log(`[DELETE] Item não encontrado: ${id}`);
-            return res.status(404).json({ error: 'Item não encontrado' });
-        }
-        
-        console.log('[DELETE] Item encontrado:', existingItem);
-        
-        // Exclusão lógica - marcar como inativo
-        console.log('[DELETE] Executando update...');
-        const { data: result, error } = await supabase
+        // Realizar soft delete diretamente
+        const { data, error } = await supabase
             .from('scope_items')
             .update({ is_active: false })
-            .eq('id', id)
-            .select()
-            .single();
+            .eq('id', itemId)
+            .eq('is_active', true) // Só atualiza se ainda estiver ativo
+            .select();
         
         if (error) {
-            console.error('[DELETE] Erro do Supabase no update:', error);
-            return res.status(500).json({ error: 'Erro no update: ' + error.message });
+            console.log('[DELETE] Erro Supabase:', error);
+            return res.status(500).json({ error: 'Erro ao deletar item', details: error.message });
         }
         
-        console.log(`[DELETE] Update executado com sucesso:`, result);
+        if (!data || data.length === 0) {
+            return res.status(404).json({ error: 'Item não encontrado ou já foi deletado' });
+        }
         
-        return res.status(200).json({
-            success: true,
-            message: 'Item excluído com sucesso',
-            data: result
+        console.log('[DELETE] Item deletado com sucesso:', data[0]);
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Item deletado com sucesso',
+            data: data[0]
         });
+        
     } catch (error) {
-        console.error('[DELETE] Erro geral:', error);
-        return res.status(500).json({ error: 'Erro interno: ' + error.message });
+        console.log('[DELETE] Erro geral:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
     }
 }

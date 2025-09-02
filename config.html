@@ -1638,11 +1638,15 @@
             }
             
             try {
-                const response = await fetch(`/api/scope-items-delete/${itemId}`, {
+                const response = await fetch(`/api/scope-items/${itemId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                id: itemId
+            })
         });
                 
                 if (response.ok) {

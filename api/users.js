@@ -81,6 +81,11 @@ async function handlePost(req, res) {
         
         console.log('[POST] Dados recebidos:', data);
         
+        // Verificar se é uma ação de delete
+        if (data.action === 'delete') {
+            return await handleDelete(req, res);
+        }
+        
         const { data: result, error } = await supabase
             .from('users')
             .insert(data)
@@ -150,19 +155,20 @@ async function handlePut(req, res) {
 
 async function handleDelete(req, res) {
     try {
-        const { id } = req.query;
+        // Aceitar ID tanto do query quanto do body (para POST com action=delete)
+        const userId = req.query.id || req.body.id;
         
-        if (!id) {
+        if (!userId) {
             console.log('[DELETE] Erro: ID não fornecido');
             return res.status(400).json({ error: 'ID não fornecido' });
         }
         
-        console.log(`[DELETE] Excluindo usuário ID: ${id}`);
+        console.log(`[DELETE] Excluindo usuário ID: ${userId}`);
         
         const { data: result, error } = await supabase
             .from('users')
             .delete()
-            .eq('id', id)
+            .eq('id', userId)
             .select()
             .single();
         
@@ -172,11 +178,11 @@ async function handleDelete(req, res) {
         }
         
         if (!result) {
-            console.log(`[DELETE] Usuário não encontrado: ${id}`);
+            console.log(`[DELETE] Usuário não encontrado: ${userId}`);
             return res.status(404).json({ error: 'Usuário não encontrado' });
         }
         
-        console.log(`[DELETE] Usuário excluído com sucesso: ${id}`);
+        console.log(`[DELETE] Usuário excluído com sucesso: ${userId}`);
         
         return res.status(200).json({
             success: true,

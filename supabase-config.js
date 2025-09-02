@@ -181,11 +181,11 @@ const SupabaseAPI = {
     async deleteUser(userId) {
         try {
             const response = await fetch('/api/users', {
-                method: 'DELETE',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ id: userId })
+                body: JSON.stringify({ id: userId, action: 'delete' })
             });
             
             const result = await response.json();

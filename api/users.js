@@ -182,10 +182,12 @@ async function handleDelete(req, res) {
         }
         
         console.log(`[DELETE] Usuário excluído com sucesso: ${userId}`);
+        console.log(`[DELETE] Resultado:`, result);
         
         return res.status(200).json({
             success: true,
-            message: 'Usuário excluído com sucesso'
+            message: 'Usuário excluído com sucesso',
+            data: result[0] || null
         });
     } catch (error) {
         console.error('[DELETE] Erro:', error);

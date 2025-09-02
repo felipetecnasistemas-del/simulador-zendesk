@@ -21,14 +21,17 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
     
     def do_OPTIONS(self):
+        print(f"[OPTIONS] Método OPTIONS chamado. Path: {self.path}")
         self.send_response(200)
         self._set_cors_headers()
         self.end_headers()
         return
     
     def do_GET(self):
+        print(f"[GET] Método GET chamado. Path: {self.path}")
         try:
             if not supabase:
+                print("[GET] Erro: Supabase não conectado")
                 self.send_response(500)
                 self._set_cors_headers()
                 self.end_headers()
@@ -151,8 +154,10 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
     
     def do_DELETE(self):
+        print(f"[DELETE] Método DELETE chamado. Path: {self.path}")
         try:
             if not supabase:
+                print("[DELETE] Erro: Supabase não conectado")
                 self.send_response(500)
                 self._set_cors_headers()
                 self.end_headers()
@@ -161,28 +166,36 @@ class handler(BaseHTTPRequestHandler):
 
             url_parts = urlparse(self.path)
             path_parts = url_parts.path.split('/')
+            print(f"[DELETE] Path parts: {path_parts}")
             
             if len(path_parts) > 3 and path_parts[3]:
                 item_id = path_parts[3]
+                print(f"[DELETE] Tentando deletar item ID: {item_id}")
+                
                 # Marcar como inativo ao invés de deletar
                 result = supabase.table('scope_items').update({'is_active': False}).eq('id', item_id).execute()
+                print(f"[DELETE] Resultado da operação: {result}")
                 
                 response_data = {
                     "success": True,
-                    "message": "Item de escopo removido com sucesso"
+                    "message": "Item de escopo removido com sucesso",
+                    "item_id": item_id
                 }
                 
+                print(f"[DELETE] Enviando resposta de sucesso: {response_data}")
                 self.send_response(200)
                 self._set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps(response_data).encode('utf-8'))
             else:
+                print(f"[DELETE] Erro: ID não encontrado no path. Path parts: {path_parts}")
                 self.send_response(400)
                 self._set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": "ID do item é obrigatório para remoção"}).encode('utf-8'))
                 
         except Exception as e:
+            print(f"[DELETE] Exceção capturada: {str(e)}")
             self.send_response(500)
             self._set_cors_headers()
             self.end_headers()

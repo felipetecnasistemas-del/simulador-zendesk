@@ -7,16 +7,24 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
-    // Configurar CORS - Atualizado para forçar redeploy
+    // Configurar CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Max-Age', '86400');
 
+    console.log(`[${req.method}] Requisição recebida para: ${req.url}`);
+
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
         console.log('[OPTIONS] Método OPTIONS chamado');
         return res.status(200).end();
+    }
+
+    // Verificar método DELETE especificamente
+    if (req.method === 'DELETE') {
+        console.log('[DELETE] Método DELETE detectado');
+        return await handleDelete(req, res);
     }
 
     try {
@@ -32,8 +40,6 @@ export default async function handler(req, res) {
                 return await handlePost(req, res);
             case 'PUT':
                 return await handlePut(req, res);
-            case 'DELETE':
-                return await handleDelete(req, res);
             default:
                 console.log(`[ERROR] Método ${method} não permitido`);
                 return res.status(405).json({ error: `Método ${method} não permitido` });

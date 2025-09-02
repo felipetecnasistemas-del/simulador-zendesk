@@ -1,4 +1,0 @@
-supabase>=2.0.0
-postgrest>=0.10.0
-realtime>=1.0.0
-storage3>=0.7.0

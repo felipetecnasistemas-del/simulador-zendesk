@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
           .single();
         
         if (error) throw error;
-        return res.json(data);
+        return res.json({ success: true, data });
       } else if (action === 'answers' && query.id) {
         // Buscar respostas do projeto
         const { data, error } = await supabase
@@ -38,7 +38,7 @@ module.exports = async (req, res) => {
           .eq('project_id', query.id);
         
         if (error) throw error;
-        return res.json(data || []);
+        return res.json({ success: true, data: data || [] });
       } else {
         // Buscar todos os projetos
         const { data, error } = await supabase
@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
           .order('created_at', { ascending: false });
         
         if (error) throw error;
-        return res.json(data || []);
+        return res.json({ success: true, data: data || [] });
       }
     }
 

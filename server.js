@@ -219,6 +219,103 @@ app.get('/api/scope-items', async (req, res) => {
   }
 });
 
+// API de itens de escopo - POST (criar ou ações especiais)
+app.post('/api/scope-items', async (req, res) => {
+  try {
+    const data = req.body;
+    
+    console.log('[POST] Dados recebidos:', data);
+    
+    // Verificar se é uma ação de delete
+    if (data && data.action === 'delete') {
+      console.log('[POST] Processando delete via POST com action=delete');
+      const itemId = data.id;
+      
+      if (!itemId) {
+        return res.status(400).json({ error: 'ID é obrigatório' });
+      }
+      
+      // Realizar soft delete
+      const { data: result, error } = await supabase
+        .from('scope_items')
+        .update({ is_active: false })
+        .eq('id', itemId)
+        .eq('is_active', true)
+        .select();
+      
+      if (error) {
+        console.log('[DELETE] Erro Supabase:', error);
+        return res.status(500).json({ error: 'Erro ao deletar item', details: error.message });
+      }
+      
+      if (!result || result.length === 0) {
+        return res.status(404).json({ error: 'Item não encontrado ou já foi deletado' });
+      }
+      
+      console.log('[DELETE] Item deletado com sucesso:', result[0]);
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Item deletado com sucesso',
+        data: result[0]
+      });
+    }
+    
+    // Verificar se é uma ação de update
+    if (data && data.action === 'update') {
+      console.log('[POST] Processando update via POST com action=update');
+      const itemId = data.id;
+      const updateData = { ...data };
+      delete updateData.id;
+      delete updateData.action;
+      
+      const { data: result, error } = await supabase
+        .from('scope_items')
+        .update(updateData)
+        .eq('id', itemId)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('[UPDATE] Erro do Supabase:', error);
+        return res.status(500).json({ error: error.message });
+      }
+      
+      if (!result) {
+        return res.status(404).json({ error: 'Item não encontrado' });
+      }
+      
+      return res.status(200).json({
+        success: true,
+        data: result,
+        message: 'Item atualizado com sucesso'
+      });
+    }
+    
+    // Caso contrário, criar novo item
+    const { data: result, error } = await supabase
+      .from('scope_items')
+      .insert(data)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('[POST] Erro do Supabase:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    
+    console.log('[POST] Item criado com sucesso:', result);
+    
+    return res.status(201).json({
+      success: true,
+      data: result,
+      message: 'Item criado com sucesso'
+    });
+  } catch (error) {
+    console.error('[POST] Erro:', error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
 
 
 // Função para obter horas padrões baseado no número de usuários

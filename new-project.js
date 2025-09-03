@@ -1,5 +1,7 @@
 // Estado do wizard
 let currentStep = 1;
+const totalSteps = 4;
+
 let projectData = {
     type: null, // 'standard' ou 'custom'
     clientName: '',
@@ -8,8 +10,17 @@ let projectData = {
     userId: '',
     selectedProducts: [],
     agentsCount: null,
-    scope: []
+    scope: [],
+    totalScopeHours: 0,
+    selectedScopeItems: [],
+    extraItems: [], // Itens extras adicionados pelo usuário
+    complexityLevel: null,
+    metadata: {}
 };
+
+// Cache para itens de escopo disponíveis
+let availableScopeItems = [];
+let modalSelectedItems = {};
 
 // Dados de projetos padrões carregados da API
 let defaultProjectsData = [];
@@ -172,6 +183,23 @@ async function loadDefaultProjectsData() {
     }
 }
 
+// Carrega itens de escopo disponíveis da API
+async function loadAvailableScopeItems() {
+    try {
+        const response = await fetch('/api/scope-items');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            availableScopeItems = result.data.filter(item => item.is_active);
+            console.log('Itens de escopo disponíveis carregados:', availableScopeItems);
+        } else {
+            console.warn('Não foi possível carregar itens de escopo da API');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar itens de escopo:', error);
+    }
+}
+
 // Função para obter escopo baseado nos dados da API
 function getDynamicScope(agentsCount) {
     if (!defaultProjectsData || defaultProjectsData.length === 0) {
@@ -201,6 +229,7 @@ function getScopeRangeIndex(agentsCount) {
 document.addEventListener('DOMContentLoaded', function() {
     loadUsers();
     loadDefaultProjectsData();
+    loadAvailableScopeItems();
     updateStepIndicators();
     updateNavigationButtons();
 });
@@ -402,74 +431,509 @@ function displayScopePreview(scope) {
         tableBody.appendChild(row);
     });
     
+    // Adicionar seção de itens extras se não existir
+    if (!document.getElementById('extra-items-section')) {
+        addExtraItemsSection();
+    }
+    
     // Calcular e exibir totais
     calculateAndDisplayTotals(scope);
     
     scopePreview.style.display = 'block';
 }
 
+// Adiciona seção de itens extras
+function addExtraItemsSection() {
+    const scopePreview = document.getElementById('scope-preview');
+    
+    const extraItemsSection = document.createElement('div');
+    extraItemsSection.id = 'extra-items-section';
+    extraItemsSection.className = 'extra-items-section';
+    extraItemsSection.innerHTML = `
+        <div class="extra-items-header">
+            <h4>Itens Extras (Opcionais)</h4>
+            <button class="add-item-btn" onclick="openExtraItemsModal()">+ Adicionar Itens</button>
+        </div>
+        <div class="extra-items-list" id="extra-items-list">
+            <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                Nenhum item extra adicionado. Use o botão "Adicionar Itens" para incluir itens adicionais ao escopo.
+            </div>
+        </div>
+    `;
+    
+    scopePreview.appendChild(extraItemsSection);
+}
+
+// Funções do Modal de Itens Extras
+function openExtraItemsModal() {
+    const modal = document.getElementById('extraItemsModal');
+    modal.classList.add('show');
+    loadModalItems();
+    updateModalSummary();
+}
+
+function closeExtraItemsModal() {
+    const modal = document.getElementById('extraItemsModal');
+    modal.classList.remove('show');
+    modalSelectedItems = {};
+}
+
+function loadModalItems() {
+    const grid = document.getElementById('modalItemsGrid');
+    
+
+    
+    if (!availableScopeItems || availableScopeItems.length === 0) {
+        console.log('Nenhum item disponível');
+        grid.innerHTML = '<div class="text-center text-muted">Nenhum item disponível</div>';
+        return;
+    }
+    
+    // Filtrar apenas itens ativos e que não foram já adicionados como extras
+    const extraItemIds = projectData.extraItems.map(item => item.id);
+    
+    const availableItems = availableScopeItems.filter(item => {
+        return item.is_active && !extraItemIds.includes(item.id);
+    });
+    
+    if (availableItems.length === 0) {
+        grid.innerHTML = '<div class="text-center text-muted">Nenhum item disponível</div>';
+        return;
+    }
+    
+    grid.innerHTML = availableItems.map(item => {
+        const timeText = item.hours > 0 || item.minutes > 0 
+            ? `${item.hours}h ${item.minutes}min` 
+            : 'Tempo variável';
+            
+        return `
+            <div class="modal-item" data-item-id="${item.id}">
+                <div class="modal-item-header">
+                    <div class="modal-item-name">${item.name}</div>
+                    <div class="modal-item-time">${timeText}</div>
+                </div>
+                <div class="modal-item-controls">
+                    <div class="modal-quantity-control">
+                        <button class="modal-quantity-btn" onclick="changeModalQuantity(${item.id}, -1)">-</button>
+                        <input type="number" class="modal-quantity-input" id="qty-${item.id}" value="0" min="0" max="99" onchange="updateModalQuantity(${item.id}, this.value)">
+                        <button class="modal-quantity-btn" onclick="changeModalQuantity(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function changeModalQuantity(itemId, change) {
+    const input = document.getElementById(`qty-${itemId}`);
+    const currentValue = parseInt(input.value) || 0;
+    const newValue = Math.max(0, Math.min(99, currentValue + change));
+    
+    input.value = newValue;
+    updateModalQuantity(itemId, newValue);
+}
+
+function updateModalQuantity(itemId, quantity) {
+    const qty = parseInt(quantity) || 0;
+    
+    if (qty > 0) {
+        modalSelectedItems[itemId] = qty;
+    } else {
+        delete modalSelectedItems[itemId];
+    }
+    
+    updateModalSummary();
+}
+
+function updateModalSummary() {
+    const totalItems = Object.values(modalSelectedItems).reduce((sum, qty) => sum + qty, 0);
+    const summary = document.getElementById('modalSummary');
+    summary.textContent = `${totalItems} ${totalItems === 1 ? 'item selecionado' : 'itens selecionados'}`;
+}
+
+function confirmExtraItems() {
+    // Adicionar itens selecionados aos itens extras
+    Object.entries(modalSelectedItems).forEach(([itemId, quantity]) => {
+        const item = availableScopeItems.find(i => i.id == itemId);
+        if (item) {
+            addExtraItemWithQuantity(item, quantity);
+        }
+    });
+    
+    closeExtraItemsModal();
+    updateExtraItemsList();
+    calculateAndDisplayTotals(projectData.scope);
+}
+
+function addExtraItemWithQuantity(item, quantity) {
+    // Verificar se o item já existe nos itens extras
+    const existingIndex = projectData.extraItems.findIndex(extra => extra.id === item.id);
+    
+    if (existingIndex >= 0) {
+        // Se já existe, somar a quantidade
+        projectData.extraItems[existingIndex].quantity += quantity;
+    } else {
+        // Se não existe, adicionar novo
+        const agentsCount = projectData.agentsCount || 10;
+        let minQuantity = 1;
+        
+        // Para itens com response_type 'numeric', usar o valor baseado no número de agentes
+        if (item.response_type === 'numeric') {
+            if (agentsCount <= 10) minQuantity = parseInt(item.agents_10) || 1;
+            else if (agentsCount <= 20) minQuantity = parseInt(item.agents_20) || 1;
+            else if (agentsCount <= 40) minQuantity = parseInt(item.agents_40) || 1;
+            else if (agentsCount <= 70) minQuantity = parseInt(item.agents_70) || 1;
+            else if (agentsCount <= 100) minQuantity = parseInt(item.agents_100) || 1;
+            else minQuantity = parseInt(item.agents_more) || 1;
+        }
+        
+        projectData.extraItems.push({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            hours: item.hours || 0,
+            minutes: item.minutes || 0,
+            response_type: item.response_type,
+            quantity: quantity,
+            minQuantity: minQuantity
+        });
+    }
+}
+
+// Adiciona item extra
+function addExtraItem(item) {
+    // Verificar se o item já foi adicionado
+    if (projectData.extraItems.find(extraItem => extraItem.id === item.id)) {
+        return;
+    }
+    
+    // Determinar quantidade mínima baseada no número de agentes
+    const agentsCount = projectData.agentsCount || 10;
+    let minQuantity = 1;
+    
+    // Para itens com response_type 'numeric', usar o valor baseado no número de agentes
+    if (item.response_type === 'numeric') {
+        if (agentsCount <= 10) minQuantity = parseInt(item.agents_10) || 1;
+        else if (agentsCount <= 20) minQuantity = parseInt(item.agents_20) || 1;
+        else if (agentsCount <= 40) minQuantity = parseInt(item.agents_40) || 1;
+        else if (agentsCount <= 70) minQuantity = parseInt(item.agents_70) || 1;
+        else if (agentsCount <= 100) minQuantity = parseInt(item.agents_100) || 1;
+        else minQuantity = parseInt(item.agents_more) || 1;
+    }
+    
+    const extraItem = {
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        hours: item.hours || 0,
+        minutes: item.minutes || 0,
+        response_type: item.response_type,
+        quantity: minQuantity,
+        minQuantity: minQuantity
+    };
+    
+    projectData.extraItems.push(extraItem);
+    
+    // Fechar dropdown
+    document.getElementById('available-items-dropdown').classList.remove('show');
+    
+    // Atualizar interface
+    updateExtraItemsList();
+    loadAvailableItemsDropdown();
+    
+    // Recalcular totais
+    calculateAndDisplayTotals(projectData.scope);
+}
+
+// Atualiza lista de itens extras
+function updateExtraItemsList() {
+    const extraItemsList = document.getElementById('extra-items-list');
+    
+    if (projectData.extraItems.length === 0) {
+        extraItemsList.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                Nenhum item extra adicionado. Use o botão "Adicionar Itens" para incluir itens adicionais ao escopo.
+            </div>
+        `;
+        return;
+    }
+    
+    extraItemsList.innerHTML = '';
+    
+    projectData.extraItems.forEach((item, index) => {
+        const extraItemDiv = document.createElement('div');
+        extraItemDiv.className = 'extra-item';
+        
+        const timeText = item.hours > 0 || item.minutes > 0 
+            ? `${item.hours}h ${item.minutes}min por unidade` 
+            : 'Tempo variável';
+            
+        extraItemDiv.innerHTML = `
+            <div class="extra-item-info">
+                <div class="extra-item-name">${item.name}</div>
+                <div class="extra-item-time">${timeText}</div>
+            </div>
+            <div class="extra-item-controls">
+                <div class="quantity-control">
+                    <button class="quantity-btn" onclick="changeExtraItemQuantity(${index}, -1)" 
+                            ${item.quantity <= item.minQuantity ? 'disabled' : ''}>
+                        −
+                    </button>
+                    <input type="number" class="quantity-input" value="${item.quantity}" 
+                           min="${item.minQuantity}" 
+                           onchange="setExtraItemQuantity(${index}, this.value)">
+                    <button class="quantity-btn" onclick="changeExtraItemQuantity(${index}, 1)">+</button>
+                </div>
+                <button class="quantity-btn" onclick="removeExtraItem(${index})" 
+                        style="background: #dc3545; color: white; border-color: #dc3545;"
+                        title="Remover item">
+                    ×
+                </button>
+            </div>
+        `;
+        
+        extraItemsList.appendChild(extraItemDiv);
+    });
+}
+
+// Altera quantidade de item extra
+function changeExtraItemQuantity(index, change) {
+    const item = projectData.extraItems[index];
+    const newQuantity = item.quantity + change;
+    
+    if (newQuantity >= item.minQuantity) {
+        item.quantity = newQuantity;
+        updateExtraItemsList();
+        calculateAndDisplayTotals(projectData.scope);
+    }
+}
+
+// Define quantidade específica de item extra
+function setExtraItemQuantity(index, value) {
+    const item = projectData.extraItems[index];
+    const quantity = parseInt(value) || item.minQuantity;
+    
+    if (quantity >= item.minQuantity) {
+        item.quantity = quantity;
+        updateExtraItemsList();
+        calculateAndDisplayTotals(projectData.scope);
+    }
+}
+
+// Remove item extra
+function removeExtraItem(index) {
+    projectData.extraItems.splice(index, 1);
+    updateExtraItemsList();
+    loadAvailableItemsDropdown();
+    calculateAndDisplayTotals(projectData.scope);
+}
+
+// Função para obter horas padrões baseado no número de usuários
+function getStandardProjectHours(userCount) {
+    if (userCount <= 10) return 32;      // Até 10 usuários: 32h
+    if (userCount <= 20) return 76;      // 11-20 usuários: 76h
+    if (userCount <= 40) return 96;      // 21-40 usuários: 96h
+    if (userCount <= 70) return 126;     // 41-70 usuários: 126h
+    if (userCount <= 100) return 156;    // 71-100 usuários: 156h
+    return 186;                          // Mais de 100 usuários: 186h
+}
+
 // Função para calcular e exibir totais de horas e valor
 async function calculateAndDisplayTotals(scope) {
     try {
-        // Buscar dados detalhados dos itens de escopo da API
-        const response = await fetch('/api/scope-items');
-        const result = await response.json();
+        console.log('🚀 Iniciando calculateAndDisplayTotals');
+        console.log('📊 projectData.extraItems no início:', projectData.extraItems);
+        console.log('📊 projectData.type:', projectData.type);
         
         let totalHours = 0;
         let totalMinutes = 0;
+        let selectedScopeItems = [];
+        const itemCounts = {};
         
-        if (result.success && result.data) {
-            const scopeItemsData = result.data;
+        // Para projetos padrões, usar horas fixas baseadas no número de usuários
+        if (projectData.type === 'standard') {
+            const userCount = projectData.agentsCount || 10;
+            totalHours = getStandardProjectHours(userCount);
             
-            // Calcular total de horas baseado nos itens selecionados
-            scope.forEach(scopeItem => {
-                const itemData = scopeItemsData.find(item => item.name === scopeItem.item);
-                if (itemData) {
-                    const quantity = parseInt(scopeItem.quantity) || 0;
-                    const itemHours = (itemData.hours || 0) * quantity;
-                    const itemMinutes = (itemData.minutes || 0) * quantity;
-                    
-                    totalHours += itemHours;
-                    totalMinutes += itemMinutes;
-                }
-            });
+            // Ainda coletar os itens de escopo para referência, mas não somar as horas
+            const response = await fetch('/api/scope-items');
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                const scopeItemsData = result.data;
+                
+                scope.forEach(scopeItem => {
+                    const itemData = scopeItemsData.find(item => item.name === scopeItem.item);
+                    if (itemData) {
+                        const quantity = parseInt(scopeItem.quantity) || 0;
+                        
+                        // Contar itens por nome
+                        if (itemCounts[scopeItem.item]) {
+                            itemCounts[scopeItem.item] += quantity;
+                        } else {
+                            itemCounts[scopeItem.item] = quantity;
+                        }
+                        
+                        // Coletar dados do item para salvar na tabela de relacionamento
+                        selectedScopeItems.push({
+                            scope_item_id: itemData.id,
+                            quantity: quantity,
+                            custom_hours: null,
+                            custom_minutes: null
+                        });
+                    }
+                });
+            }
         } else {
-            // Fallback: usar estimativa baseada no número de agentes
-            const agentsCount = projectData.agentsCount || 10;
-            const rangeIndex = getScopeRangeIndex(agentsCount);
-            const estimatedHours = [8, 16, 32, 56, 80, 120][rangeIndex] || 32;
-            totalHours = estimatedHours;
+            // Para projetos customizados, calcular baseado nos itens selecionados
+            const response = await fetch('/api/scope-items');
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                const scopeItemsData = result.data;
+                
+                // Calcular total de horas baseado nos itens selecionados
+                scope.forEach(scopeItem => {
+                    const itemData = scopeItemsData.find(item => item.name === scopeItem.item);
+                    if (itemData) {
+                        const quantity = parseInt(scopeItem.quantity) || 0;
+                        const itemHours = (itemData.hours || 0) * quantity;
+                        const itemMinutes = (itemData.minutes || 0) * quantity;
+                        
+                        totalHours += itemHours;
+                        totalMinutes += itemMinutes;
+                        
+                        // Contar itens por nome
+                        if (itemCounts[scopeItem.item]) {
+                            itemCounts[scopeItem.item] += quantity;
+                        } else {
+                            itemCounts[scopeItem.item] = quantity;
+                        }
+                        
+                        // Coletar dados do item para salvar na tabela de relacionamento
+                        selectedScopeItems.push({
+                            scope_item_id: itemData.id,
+                            quantity: quantity,
+                            custom_hours: null,
+                            custom_minutes: null
+                        });
+                    }
+                });
+            } else {
+                // Fallback: usar estimativa baseada no número de agentes
+                const agentsCount = projectData.agentsCount || 10;
+                const rangeIndex = getScopeRangeIndex(agentsCount);
+                const estimatedHours = [8, 16, 32, 56, 80, 120][rangeIndex] || 32;
+                totalHours = estimatedHours;
+            }
         }
+        
+        // Calcular horas dos itens extras e somar às quantidades existentes
+        let extraHours = 0;
+        let extraMinutes = 0;
+        
+        console.log('🔍 Frontend - Calculando horas extras');
+        console.log('📋 Itens extras:', projectData.extraItems);
+        console.log('⏰ Horas padrão antes dos extras:', totalHours);
+        
+        projectData.extraItems.forEach(extraItem => {
+            const itemTotalHours = (extraItem.hours || 0) * extraItem.quantity;
+            const itemTotalMinutes = (extraItem.minutes || 0) * extraItem.quantity;
+            
+            console.log(`📦 Item extra: ${extraItem.name}, horas=${extraItem.hours}, minutos=${extraItem.minutes}, quantidade=${extraItem.quantity}`);
+            console.log(`➕ Horas do item: ${itemTotalHours}, Minutos do item: ${itemTotalMinutes}`);
+            
+            extraHours += itemTotalHours;
+            extraMinutes += itemTotalMinutes;
+            
+            // Somar às quantidades existentes dos itens do escopo padrão
+            if (itemCounts[extraItem.name]) {
+                itemCounts[extraItem.name] += extraItem.quantity;
+            } else {
+                itemCounts[extraItem.name] = extraItem.quantity;
+            }
+        });
+        
+        console.log('🧮 Total horas extras:', extraHours);
+        console.log('🧮 Total minutos extras:', extraMinutes);
         
         // Converter minutos extras para horas
         totalHours += Math.floor(totalMinutes / 60);
         totalMinutes = totalMinutes % 60;
         
+        extraHours += Math.floor(extraMinutes / 60);
+        extraMinutes = extraMinutes % 60;
+        
+        // Somar horas padrão + horas extras
+        const finalTotalHours = totalHours + extraHours;
+        const finalTotalMinutes = totalMinutes + extraMinutes;
+        
+        console.log('🔢 Cálculo final:');
+        console.log(`   Horas padrão: ${totalHours}`);
+        console.log(`   Horas extras: ${extraHours}`);
+        console.log(`   Total final: ${finalTotalHours}`);
+        console.log(`   Minutos finais: ${finalTotalMinutes}`);
+        
         // Calcular valor total (R$ 280 por hora)
         const hourlyRate = 280;
-        const totalValue = (totalHours + (totalMinutes / 60)) * hourlyRate;
+        const totalValue = (finalTotalHours + (finalTotalMinutes / 60)) * hourlyRate;
         
-        // Armazenar no projectData para uso posterior
-        projectData.totalScopeHours = totalHours + (totalMinutes / 60);
+        // Armazenar no projectData para uso posterior (sempre arredondando para cima)
+        const totalHoursWithMinutes = finalTotalHours + (finalTotalMinutes / 60);
+        projectData.totalScopeHours = Math.ceil(totalHoursWithMinutes);
+        console.log('💾 Horas calculadas (com minutos):', totalHoursWithMinutes);
+        console.log('💾 Valor final arredondado para cima:', projectData.totalScopeHours);
+        projectData.selectedScopeItems = selectedScopeItems;
+        projectData.itemCounts = itemCounts;
         
         // Exibir os totais
-        displayProjectTotals(totalHours, totalMinutes, totalValue);
+        displayProjectTotals(finalTotalHours, finalTotalMinutes, totalValue, totalHours, extraHours);
         
     } catch (error) {
         console.error('Erro ao calcular totais:', error);
         // Fallback em caso de erro
-        const agentsCount = projectData.agentsCount || 10;
-        const rangeIndex = getScopeRangeIndex(agentsCount);
-        const estimatedHours = [8, 16, 32, 56, 80, 120][rangeIndex] || 32;
-        const totalValue = estimatedHours * 280;
+        let estimatedHours;
         
-        projectData.totalScopeHours = estimatedHours;
-        displayProjectTotals(estimatedHours, 0, totalValue);
+        if (projectData.type === 'standard') {
+            // Para projetos padrões, usar horas fixas baseadas no número de usuários
+            const userCount = projectData.agentsCount || 10;
+            estimatedHours = getStandardProjectHours(userCount);
+        } else {
+            // Para projetos customizados, usar estimativa antiga
+            const agentsCount = projectData.agentsCount || 10;
+            const rangeIndex = getScopeRangeIndex(agentsCount);
+            estimatedHours = [8, 16, 32, 56, 80, 120][rangeIndex] || 32;
+        }
+        
+        // Calcular horas dos itens extras mesmo no fallback
+            let extraHours = 0;
+            let extraMinutes = 0;
+            
+            projectData.extraItems.forEach(extraItem => {
+                const itemTotalHours = (extraItem.hours || 0) * extraItem.quantity;
+                const itemTotalMinutes = (extraItem.minutes || 0) * extraItem.quantity;
+                
+                extraHours += itemTotalHours;
+                extraMinutes += itemTotalMinutes;
+            });
+            
+            extraHours += Math.floor(extraMinutes / 60);
+            extraMinutes = extraMinutes % 60;
+            
+            const finalTotalHours = estimatedHours + extraHours;
+            const totalValue = (finalTotalHours + (extraMinutes / 60)) * 280;
+            
+            // Arredondar para cima também no fallback
+            const totalHoursWithMinutes = finalTotalHours + (extraMinutes / 60);
+            projectData.totalScopeHours = Math.ceil(totalHoursWithMinutes);
+            console.log('💾 FALLBACK - Horas calculadas (com minutos):', totalHoursWithMinutes);
+            console.log('💾 FALLBACK - Valor final arredondado para cima:', projectData.totalScopeHours);
+             displayProjectTotals(finalTotalHours, extraMinutes, totalValue, estimatedHours, extraHours);
     }
 }
 
 // Função para exibir os totais calculados
-function displayProjectTotals(hours, minutes, totalValue) {
+function displayProjectTotals(hours, minutes, totalValue, standardHours = null, extraHours = null) {
     // Criar ou atualizar seção de totais
     let totalsSection = document.getElementById('project-totals');
     
@@ -482,11 +946,38 @@ function displayProjectTotals(hours, minutes, totalValue) {
         scopePreview.appendChild(totalsSection);
     }
     
-    const timeText = minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`;
+    // Arredondar horas para cima (incluindo minutos)
+    const totalHoursWithMinutes = hours + (minutes / 60);
+    const roundedHours = Math.ceil(totalHoursWithMinutes);
+    
+    // Calcular valor baseado nas horas arredondadas
+    const hourlyRate = 280;
+    const roundedTotalValue = roundedHours * hourlyRate;
+    
+    const timeText = `${roundedHours}h`;
     const formattedValue = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL'
-    }).format(totalValue);
+    }).format(roundedTotalValue);
+    
+    console.log('🖥️ Exibindo no frontend - Horas originais:', hours + (minutes/60));
+    console.log('🖥️ Exibindo no frontend - Horas arredondadas:', roundedHours);
+    
+    let detailsHtml = '';
+    if (standardHours !== null && extraHours !== null && extraHours > 0) {
+        detailsHtml = `
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 0.9rem; opacity: 0.9;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Horas do escopo padrão:</span>
+                    <span>${standardHours}h</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Horas dos itens extras:</span>
+                    <span>+${extraHours}h</span>
+                </div>
+            </div>
+        `;
+    }
     
     totalsSection.innerHTML = `
         <div class="totals-summary">
@@ -499,6 +990,7 @@ function displayProjectTotals(hours, minutes, totalValue) {
                 <span class="total-value total-price">${formattedValue}</span>
             </div>
         </div>
+        ${detailsHtml}
     `;
 }
 
@@ -616,20 +1108,61 @@ async function createProject() {
     try {
         collectFormData();
         
+        // Recalcular totais antes de criar o projeto
+        calculateAndDisplayTotals(projectData.scope);
+        
+        console.log('🔥 APÓS calculateAndDisplayTotals - projectData.totalScopeHours:', projectData.totalScopeHours);
+        console.log('🔥 VERIFICAÇÃO - projectData.extraItems:', projectData.extraItems);
+        
+        // Combinar itens do escopo padrão com itens extras
+        let finalScopeItems = [...(projectData.selectedScopeItems || [])];
+        
+        // Processar itens extras se existirem
+        if (projectData.extraItems && projectData.extraItems.length > 0) {
+            for (const extraItem of projectData.extraItems) {
+                // Verificar se o item já existe no escopo padrão
+                const existingItemIndex = finalScopeItems.findIndex(item => 
+                    item.scope_item_id === extraItem.id
+                );
+                
+                if (existingItemIndex !== -1) {
+                    // Se já existe, somar a quantidade
+                    finalScopeItems[existingItemIndex].quantity = 
+                        (finalScopeItems[existingItemIndex].quantity || 1) + (extraItem.quantity || 1);
+                } else {
+                    // Se não existe, adicionar como novo item
+                    finalScopeItems.push({
+                        scope_item_id: extraItem.id,
+                        quantity: extraItem.quantity || 1,
+                        custom_hours: null,
+                        custom_minutes: null
+                    });
+                }
+            }
+        }
+        
         const projectPayload = {
-            client_name: projectData.clientName,
+            name: projectData.clientName,
             description: projectData.description || null,
             client_type: projectData.clientType,
             user_id: parseInt(projectData.userId),
             project_type: projectData.type,
             selected_products: projectData.selectedProducts,
             agents_count: projectData.agentsCount || null,
-            scope: projectData.scope,
             total_scope_hours: projectData.totalScopeHours || 0,
             complexity_level: projectData.complexityLevel || null,
             project_metadata: projectData.metadata || {},
+            selected_scope_items: finalScopeItems,
             status: 'active'
         };
+        
+        console.log('📤 PAYLOAD ENVIADO PARA API:');
+        console.log('   total_scope_hours:', projectPayload.total_scope_hours);
+        console.log('   projectData.totalScopeHours:', projectData.totalScopeHours);
+        
+        console.log('🌐 FAZENDO REQUISIÇÃO PARA API:');
+        console.log('   📍 URL:', '/api/projects');
+        console.log('   📦 Payload completo:', JSON.stringify(projectPayload, null, 2));
         
         const response = await fetch('/api/projects', {
             method: 'POST',
@@ -639,8 +1172,16 @@ async function createProject() {
             body: JSON.stringify(projectPayload)
         });
         
+        console.log('📡 RESPOSTA DA API:');
+        console.log('   ✅ Status:', response.status);
+        console.log('   ✅ Status Text:', response.statusText);
+        
         if (response.ok) {
             const result = await response.json();
+            console.log('🎉 PROJETO CRIADO COM SUCESSO!');
+            console.log('   🆔 ID do projeto:', result.id);
+            console.log('   📋 Resultado completo:', result);
+            
             alert('Projeto criado com sucesso!');
             
             // Redireciona baseado no tipo de projeto
@@ -651,6 +1192,8 @@ async function createProject() {
             }
         } else {
             const error = await response.json();
+            console.log('❌ ERRO NA CRIAÇÃO:');
+            console.log('   📋 Erro completo:', error);
             alert('Erro ao criar projeto: ' + (error.message || 'Erro desconhecido'));
         }
     } catch (error) {

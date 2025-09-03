@@ -433,10 +433,17 @@ function displayExistingProjectsInHome(projects) {
             'pending': 'Pendente'
         }[project.status] || project.status;
         
-        // Obter nome do usuário responsável
-        const responsibleUser = project.users ? project.users.name : 'Não atribuído';
+        // Obter nome do usuário responsável - verificação mais robusta
+        let responsibleUser = 'Não atribuído';
         
-        projectItem.innerHTML = `
+        if (project.users && project.users.name) {
+            responsibleUser = project.users.name;
+        } else if (project.user_id) {
+            // Fallback: se temos user_id mas não o objeto users, mostrar o ID
+            responsibleUser = `Usuário ID: ${project.user_id}`;
+        }
+         
+         projectItem.innerHTML = `
             <div class="project-info">
                 <h4>${project.name}</h4>
                 <p>${project.description || 'Sem descrição'}</p>

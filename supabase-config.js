@@ -107,7 +107,7 @@ const SupabaseAPI = {
         return { data, error };
     },
 
-    // Usuários (dados simulados para teste)
+    // Usuários
     async getUsers() {
         try {
             const response = await fetch('/api/users', {

@@ -498,6 +498,22 @@
             margin-top: 10px;
         }
         
+        /* Loading spinner */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         .selected-product-badge {
             background: #007bff;
             color: white;
@@ -736,7 +752,12 @@
                     </div>
                 </div>
                 
-                <div id="projectsGrid" class="projects-grid">
+                <div id="loadingState" class="loading" style="display: block;">
+                    <div class="loading-spinner"></div>
+                    <p>Carregando projetos...</p>
+                </div>
+                
+                <div id="projectsGrid" class="projects-grid" style="display: none;">
                     <!-- Projetos serão carregados aqui dinamicamente -->
                 </div>
                 
@@ -767,63 +788,12 @@
                     </div>
                 </div>
                 
-                <!-- CAMADA 1: Modelo de Faturamento -->
-                <div class="billing-model-section">
-                    <h3>1. Modelo de Faturamento</h3>
-                    <div class="billing-model-options">
-                        <div class="billing-option">
-                            <input type="radio" id="time-materials" name="billing_model" value="time_materials" onchange="onBillingModelChange()">
-                            <label for="time-materials" class="billing-label">
-                                <div class="billing-icon">⏱️</div>
-                                <div class="billing-content">
-                                    <h4>Time & Materials</h4>
-                                    <p>Cobrança por hora trabalhada com perguntas dinâmicas</p>
-                                </div>
-                            </label>
-                        </div>
-                        <div class="billing-option">
-                            <input type="radio" id="escopo-fechado" name="billing_model" value="escopo_fechado" onchange="onBillingModelChange()">
-                            <label for="escopo-fechado" class="billing-label">
-                                <div class="billing-icon">📦</div>
-                                <div class="billing-content">
-                                    <h4>Escopo Fechado</h4>
-                                    <p>Pacote fixo baseado na complexidade</p>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- CAMADA 2: Seleção de Produtos -->
-                <div id="productSelectionSection" class="product-selection-section" style="display: none;">
-                    <h3>2. Seleção de Produtos</h3>
-                    <p>Selecione os produtos que farão parte deste projeto:</p>
-                    <div id="availableProducts" class="available-products-grid">
-                        <!-- Produtos disponíveis serão carregados aqui -->
-                    </div>
-                    <div class="selected-products-summary">
-                        <h4>Produtos Selecionados:</h4>
-                        <div id="selectedProductsList" class="selected-products-list">
-                            <!-- Lista de produtos selecionados -->
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- CAMADA 3: Perguntas por Produto -->
-                <div id="questionsSection" class="questions-section" style="display: none;">
-                    <h3>3. Configuração por Produto</h3>
-                    <p>Responda as perguntas específicas para cada produto selecionado:</p>
-                    <div id="productsWithQuestions" class="products-with-questions">
-                        <!-- Produtos e suas perguntas serão carregados aqui -->
-                    </div>
-                </div>
+                <!-- Seções removidas - não são mais necessárias -->
             </div>
 
         </main>
     </div>
 
-    <script src="home.js"></script>
-    
     <script>
         // Variáveis globais do simulador integrado
         let currentProject = null;
@@ -857,6 +827,12 @@
         function displayProjects(projects) {
             const grid = document.getElementById('projectsGrid');
             const emptyState = document.getElementById('emptyState');
+            const loadingState = document.getElementById('loadingState');
+            
+            // Ocultar loading state
+            if (loadingState) {
+                loadingState.style.display = 'none';
+            }
             
             if (projects.length === 0) {
                 grid.style.display = 'none';
@@ -916,73 +892,12 @@
             return labels[status] || status;
         }
         
-        // Abrir projeto para edição
-        async function openProject(projectId) {
-            try {
-                const response = await fetch(`/api/projects?id=${projectId}`);
-                const project = await response.json();
-                currentProject = project;
-                
-                // Esconder lista e mostrar editor
-                document.getElementById('projectsList').style.display = 'none';
-                document.getElementById('projectEditor').style.display = 'block';
-                
-                // Preencher informações do projeto
-                document.getElementById('editorProjectName').textContent = project.name;
-                document.getElementById('editorProjectDescription').textContent = project.description || 'Sem descrição';
-                
-                // Definir modelo de faturamento
-                if (project.billing_model) {
-                    document.querySelector(`input[name="billing_model"][value="${project.billing_model}"]`).checked = true;
-                }
-                
-                // Carregar produtos e perguntas
-                await loadProjectProducts(projectId);
-                
-            } catch (error) {
-                console.error('Erro ao abrir projeto:', error);
-            }
+        // Abrir projeto para visualização
+        function openProject(projectId) {
+            window.location.href = `/project-detail.html?id=${projectId}`;
         }
         
-        // Carregar produtos do projeto
-        async function loadProjectProducts(projectId) {
-            try {
-                // Carregar produtos disponíveis
-                const productsResponse = await fetch('/api/products');
-                allProducts = await productsResponse.json();
-                
-                // Carregar produtos já associados ao projeto
-                const project = allProjects.find(p => p.id === projectId);
-                if (project && project.project_products) {
-                    // Marcar produtos já selecionados
-                    const selectedProductIds = project.project_products.map(pp => pp.product_id);
-                    
-                    // Se há modelo de faturamento definido, mostrar seleção de produtos
-                    const billingModel = document.querySelector('input[name="billing_model"]:checked')?.value;
-                    if (billingModel) {
-                        document.getElementById('productSelectionSection').style.display = 'block';
-                        await loadAvailableProducts();
-                        
-                        // Marcar produtos já selecionados
-                        selectedProductIds.forEach(productId => {
-                            const card = document.querySelector(`[data-product-id="${productId}"]`);
-                            if (card) {
-                                const checkbox = card.querySelector('.product-checkbox');
-                                checkbox.checked = true;
-                                card.classList.add('selected');
-                            }
-                        });
 
-
-                        
-                        updateSelectedProductsList();
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Erro ao carregar produtos:', error);
-            }
-        }
         
         // Salvar seleção de produtos no projeto
         async function saveProductSelection() {
@@ -994,7 +909,7 @@
             );
             
             try {
-                console.log('Produtos selecionados:', selectedProductIds);
+                // Produtos selecionados salvos
                 
             } catch (error) {
                 console.error('Erro ao salvar seleção de produtos:', error);
@@ -1193,14 +1108,7 @@
             }
             
             try {
-                console.log('Enviando dados do projeto:', {
-                    name: clientName,
-                    description: `Projeto para ${clientName} - Tipo: ${clientType}`,
-                    client_type: clientType,
-                    is_tecna_client: isTecnaClient === 'sim',
-                    has_zendesk_admin: hasZendeskAdmin === 'sim',
-                    billing_model: 'escopo_fechado'
-                });
+                // Enviando dados do projeto para criação
                 
                 const response = await fetch('/api/projects', {
                     method: 'POST',
@@ -1217,16 +1125,16 @@
                     })
                 });
                 
-                console.log('Resposta da API:', response.status, response.statusText);
+                // Resposta da API recebida
                 
                 if (response.ok) {
                     const result = await response.json();
-                    console.log('Dados recebidos:', result);
+                    // Dados do projeto recebidos
                     
                     // Verificar se a resposta contém os dados do projeto
                     if (result.message && result.data) {
                         alert(`${result.message}! Projeto "${result.data.name}" foi criado.`);
-                        console.log('Projeto criado com ID:', result.data.id);
+                        // Projeto criado com sucesso
                     } else {
                         alert('Projeto criado com sucesso!');
                     }
@@ -1273,7 +1181,7 @@
                 
                 if (response.ok) {
                     const result = await response.json();
-                    console.log('Projeto criado:', result);
+                    // Projeto criado com sucesso
                     
                     if (result.data && result.data.id) {
                         alert(`Projeto "${result.data.name}" criado com sucesso!`);
@@ -1547,7 +1455,7 @@
                 
                 const userFilter = document.getElementById('userFilter');
                 if (!userFilter) {
-                    console.log('Elemento userFilter não encontrado');
+                    // Elemento userFilter não encontrado
                     return;
                 }
                 
@@ -1565,7 +1473,7 @@
                         userFilter.appendChild(option);
                     });
                 } else {
-                    console.log('Resposta da API não é um array:', users);
+                    // Resposta da API não é um array
                 }
             } catch (error) {
                 console.error('Erro ao carregar usuários:', error);

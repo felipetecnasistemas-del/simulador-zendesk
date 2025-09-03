@@ -682,6 +682,63 @@
             font-size: 1rem;
             border-radius: 8px;
         }
+        
+        /* Estilos para estados de loading, erro e sem dados */
+        .loading-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-state p {
+            margin: 0;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .no-data-message {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            border: 2px dashed rgba(113, 128, 150, 0.3);
+            margin: 20px 0;
+        }
+        
+        .no-data-message::before {
+            content: '📋';
+            display: block;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
     </style>
     <!-- Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2.45.4"></script>
@@ -900,18 +957,27 @@
 
         // Função para carregar usuários
         async function loadUsers() {
+            const usersList = document.getElementById('users-list');
+            if (!usersList) return;
+            
+            // Mostrar loading
+            usersList.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Carregando usuários...</p>
+                </div>
+            `;
+            
             try {
                 const result = await SupabaseAPI.getUsers();
                 if (result.error) {
                     console.error('Erro ao carregar usuários:', result.error);
+                    usersList.innerHTML = '<div class="error-message">Erro ao carregar usuários: ' + result.error + '</div>';
                     return;
                 }
                 
-                const usersList = document.getElementById('users-list');
-                if (!usersList) return;
-                
                 if (!result.data || result.data.length === 0) {
-                    usersList.innerHTML = '<p class="no-users">Nenhum usuário cadastrado</p>';
+                    usersList.innerHTML = '<div class="no-data-message">Nenhum usuário cadastrado</div>';
                     return;
                 }
                 
@@ -933,6 +999,7 @@
                 `).join('');
             } catch (error) {
                 console.error('Erro ao carregar usuários:', error);
+                usersList.innerHTML = '<div class="error-message">Erro ao carregar usuários. Tente novamente.</div>';
             }
         }
 
@@ -1068,6 +1135,16 @@
                 return;
             }
             
+            // Mostrar loading
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Carregando projetos padrões...</p>
+                    </td>
+                </tr>
+            `;
+            
             try {
                 // Buscar dados da API
                 console.log('Fazendo requisição para /api/default-projects...');
@@ -1083,10 +1160,30 @@
                 }
             } catch (error) {
                 console.error('Erro ao carregar projetos padrões:', error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="error-message">
+                            Erro ao carregar projetos padrões. Usando dados locais.
+                        </td>
+                    </tr>
+                `;
                 // Usar dados locais como fallback
             }
             
             console.log('Renderizando tabela com dados:', defaultProjectsData);
+            
+            // Verificar se há dados para exibir
+            if (!defaultProjectsData || defaultProjectsData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data-message">
+                            Nenhum projeto padrão cadastrado
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
             console.log('Limpando tbody atual...');
             tbody.innerHTML = '';
             console.log('Tbody limpo, iniciando renderização...');
@@ -1471,6 +1568,19 @@
         
         // Carregar itens de escopo
         async function loadScopeItems() {
+            const tbody = document.getElementById('scope-items-tbody');
+            if (tbody) {
+                // Mostrar loading
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <p>Carregando itens de escopo...</p>
+                        </td>
+                    </tr>
+                `;
+            }
+            
             try {
                 const response = await fetch('/api/scope-items');
                 if (response.ok) {
@@ -1482,17 +1592,59 @@
                         scopeItemsData = result;
                     } else {
                         console.error('Formato de resposta inesperado:', result);
+                        if (tbody) {
+                            tbody.innerHTML = `
+                                <tr>
+                                    <td colspan="5" class="error-message">
+                                        Formato de resposta inesperado. Carregando dados de exemplo.
+                                    </td>
+                                </tr>
+                            `;
+                        }
                         loadSampleScopeItems();
                         return;
                     }
+                    
+                    // Verificar se há dados para exibir
+                    if (!scopeItemsData || scopeItemsData.length === 0) {
+                        if (tbody) {
+                            tbody.innerHTML = `
+                                <tr>
+                                    <td colspan="5" class="no-data-message">
+                                        Nenhum item de escopo cadastrado
+                                    </td>
+                                </tr>
+                            `;
+                        }
+                        return;
+                    }
+                    
                     renderScopeItems();
                 } else {
                     console.error('Erro ao carregar itens de escopo:', response.statusText);
+                    if (tbody) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="error-message">
+                                    Erro ao carregar itens de escopo. Carregando dados de exemplo.
+                                </td>
+                            </tr>
+                        `;
+                    }
                     // Carregar dados de exemplo se a API falhar
                     loadSampleScopeItems();
                 }
             } catch (error) {
                 console.error('Erro ao carregar itens de escopo:', error);
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="error-message">
+                                Erro ao carregar itens de escopo. Carregando dados de exemplo.
+                            </td>
+                        </tr>
+                    `;
+                }
                 loadSampleScopeItems();
             }
         }

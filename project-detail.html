@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Projeto - Simulador TECNA</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .project-detail-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .project-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .header-text {
+            flex: 1;
+        }
+        
+        .back-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 15px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+        }
+        
+        .project-title {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 30px;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .project-description {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        
+        .project-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .scope-items-section {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .scope-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        
+        .scope-items-table th,
+        .scope-items-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .scope-items-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .scope-items-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .item-description {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        
+        .quantity-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .time-cell {
+            text-align: center;
+        }
+        
+        .actions-section {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #7f8c8d;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-state {
+            text-align: center;
+            padding: 60px;
+            color: #e74c3c;
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="project-detail-container">
+        <div id="loadingState" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Carregando detalhes do projeto...</p>
+        </div>
+        
+        <div id="errorState" class="error-state" style="display: none;">
+            <div class="error-icon">⚠️</div>
+            <h2>Erro ao carregar projeto</h2>
+            <p>Não foi possível carregar os detalhes do projeto.</p>
+            <button class="btn btn-primary" onclick="loadProject()">
+                <span>🔄</span>
+                Tentar Novamente
+            </button>
+        </div>
+        
+        <div id="projectContent" style="display: none;">
+            <!-- Cabeçalho do Projeto -->
+            <div class="project-header">
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1 id="projectTitle" class="project-title">Nome do Projeto</h1>
+                        <div class="project-meta">
+                            <span id="projectDate">📅 Data de criação</span>
+                            <span id="projectResponsible">👤 Responsável</span>
+                            <span id="projectModel">💼 Modelo de faturamento</span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <a href="/" class="back-button" title="Voltar à página inicial">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Descrição -->
+            <div id="projectDescriptionSection" class="project-description" style="display: none;">
+                <h2 class="section-title">Descrição</h2>
+                <p id="projectDescription"></p>
+            </div>
+            
+            <!-- Estatísticas -->
+            <div class="project-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div id="totalItems" class="stat-value">0</div>
+                    <div class="stat-label">Itens de Escopo</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div id="totalTime" class="stat-value">0h</div>
+                    <div class="stat-label">Tempo Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div id="estimatedPrice" class="stat-value">R$ 0,00</div>
+                    <div class="stat-label">Valor Estimado</div>
+                </div>
+            </div>
+            
+            <!-- Itens de Escopo -->
+            <div class="scope-items-section">
+                <h2 class="section-title">Itens de Escopo</h2>
+                <div id="scopeItemsContent">
+                    <p>Nenhum item de escopo encontrado.</p>
+                </div>
+            </div>
+            
+            <!-- Ações -->
+            <div class="actions-section">
+                <button class="btn btn-primary" onclick="editProject()">
+                    <span>✏️</span>
+                    Editar Projeto
+                </button>
+                <button class="btn btn-danger" onclick="deleteProject()">
+                    <span>🗑️</span>
+                    Excluir Projeto
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="project-detail.js"></script>
+</body>
+</html>

@@ -20,7 +20,7 @@
     },
     {
       "source": "/api/scope-items/(.*)",
-      "destination": "/api/scope-items.js"
+      "destination": "/api/scope-items.js?id=$1"
     },
     {
       "source": "/api/default-projects(.*)",

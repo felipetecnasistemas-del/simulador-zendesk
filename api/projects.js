@@ -16,16 +16,26 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { method, query, body } = req;
+    const { method, query, body, url } = req;
     const { action, id } = query;
+    
+    // Extrair ID da URL para requisições DELETE/PUT
+    let projectId = id;
+    if (!projectId && url) {
+      const urlParts = url.split('/');
+      const lastPart = urlParts[urlParts.length - 1];
+      if (lastPart && !isNaN(lastPart)) {
+        projectId = lastPart;
+      }
+    }
 
     if (method === 'GET') {
-      if (id) {
+      if (projectId) {
         // Buscar projeto específico
         const { data, error } = await supabase
           .from('projects')
           .select('*')
-          .eq('id', id)
+          .eq('id', projectId)
           .single();
         
         if (error) throw error;
@@ -101,15 +111,15 @@ module.exports = async (req, res) => {
 
     if (method === 'PUT') {
       // Atualizar projeto
-      const projectId = id || body.id;
-      if (!projectId) {
+      const updateProjectId = projectId || body.id;
+      if (!updateProjectId) {
         return res.status(400).json({ success: false, error: 'ID do projeto é obrigatório' });
       }
       
       const { data, error } = await supabase
         .from('projects')
         .update(body)
-        .eq('id', projectId)
+        .eq('id', updateProjectId)
         .select()
         .single();
       
@@ -120,7 +130,6 @@ module.exports = async (req, res) => {
 
     if (method === 'DELETE') {
       // Excluir projeto
-      const projectId = id;
       if (!projectId) {
         return res.status(400).json({ success: false, error: 'ID do projeto é obrigatório' });
       }

@@ -2,12 +2,19 @@
   "functions": {
     "api/scope-items.js": {
       "maxDuration": 10
+    },
+    "api/projects.js": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
     {
       "source": "/api/scope-items/(.*)",
       "destination": "/api/scope-items?id=$1"
+    },
+    {
+      "source": "/api/projects/(.*)",
+      "destination": "/api/projects?id=$1"
     },
     {
       "source": "/simulador",

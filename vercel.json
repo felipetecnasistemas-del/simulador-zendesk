@@ -6,10 +6,6 @@
   },
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/index.html"
-    },
-    {
       "source": "/api/scope-items/(.*)",
       "destination": "/api/scope-items?id=$1"
     },

@@ -7,21 +7,21 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 module.exports = async (req, res) => {
   // Configuração robusta de CORS para serverless functions
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With'
-  };
-  
-  // Aplicar headers CORS
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Max-Age', '86400');
   
   // Lidar com requisições preflight OPTIONS
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
+  
+  // Log para debug no Vercel
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  console.log('Query:', req.query);
 
   try {
     const { method, query, body, url } = req;
@@ -173,7 +173,13 @@ module.exports = async (req, res) => {
       return res.json({ success: true, message: 'Projeto excluído com sucesso' });
     }
 
-    return res.status(405).json({ error: 'Método não permitido' });
+    console.log(`Método ${method} não suportado para esta rota`);
+    res.setHeader('Allow', 'GET, POST, PUT, DELETE, OPTIONS');
+    return res.status(405).json({ 
+      success: false, 
+      error: `Método ${method} não permitido`,
+      allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    });
   } catch (error) {
     console.error('Erro na API de projetos:', error);
     return res.status(500).json({ success: false, error: error.message });

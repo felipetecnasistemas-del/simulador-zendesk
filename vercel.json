@@ -1,5 +1,14 @@
 {
+  "functions": {
+    "api/scope-items.js": {
+      "maxDuration": 10
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/scope-items/(.*)",
+      "destination": "/api/scope-items?id=$1"
+    },
     {
       "source": "/simulador",
       "destination": "/simulador.html"

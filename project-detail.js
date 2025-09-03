@@ -254,13 +254,26 @@ async function performDeleteProject() {
             method: 'DELETE'
         });
         
-        const result = await response.json();
+        // Verificar se a resposta tem conteúdo antes de tentar fazer parse JSON
+        let result;
+        const contentType = response.headers.get('content-type');
         
-        if (result.success) {
+        if (contentType && contentType.includes('application/json')) {
+            const text = await response.text();
+            if (text.trim()) {
+                result = JSON.parse(text);
+            } else {
+                result = { success: response.ok };
+            }
+        } else {
+            result = { success: response.ok };
+        }
+        
+        if (response.ok && (result.success || result.success === undefined)) {
             alert('Projeto excluído com sucesso!');
             window.location.href = '/';
         } else {
-            alert('Erro ao excluir projeto: ' + result.error);
+            alert('Erro ao excluir projeto: ' + (result.error || `Status: ${response.status}`));
         }
     } catch (error) {
         console.error('Erro ao excluir projeto:', error);

@@ -1,5 +1,28 @@
 {
   "outputDirectory": ".",
+  "functions": {
+    "api/users.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/scope-items.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/default-projects.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/projects.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/products.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/questions.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/advanced-questions.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/users",
@@ -15,12 +38,23 @@
     },
     {
       "source": "/api/scope-items/(.*)",
-      "destination": "/api/scope-items.js?id=$1"
+      "destination": "/api/scope-items.js"
     },
-
     {
       "source": "/api/default-projects(.*)",
       "destination": "/api/default-projects.js"
+    },
+    {
+      "source": "/api/products",
+      "destination": "/api/products.js"
+    },
+    {
+      "source": "/api/questions",
+      "destination": "/api/questions.js"
+    },
+    {
+      "source": "/api/advanced-questions",
+      "destination": "/api/advanced-questions.js"
     },
     {
       "source": "/simulador",

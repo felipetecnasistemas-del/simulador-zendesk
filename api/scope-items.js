@@ -37,8 +37,8 @@ export default async function handler(req, res) {
         console.log(`[${method}] _method parameter: ${_method}`);
 
         // Verificar se é uma operação de delete via POST
-        if (method === 'POST' && body && body.action === 'delete') {
-            console.log('[DELETE] Processando delete via POST com action=delete');
+        if (method === 'POST' && ((body && body.action === 'delete') || id)) {
+            console.log('[DELETE] Processando delete via POST');
             return await handleDelete(req, res);
         }
 

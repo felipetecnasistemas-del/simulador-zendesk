@@ -108,7 +108,8 @@ module.exports = async (req, res) => {
         // Criar novo projeto
         console.log('🔢 Projeto padrão - valor original do frontend:', body.totalScopeHours);
         
-        let projectData = { ...body };
+        // Separar os scope items do projeto principal
+        const { selected_scope_items, ...projectData } = body;
         
         // Para projetos customizados, arredondar as horas
         if (body.isCustom && body.totalScopeHours) {
@@ -119,15 +120,36 @@ module.exports = async (req, res) => {
           console.log('⏰ Horas totais do frontend:', body.totalScopeHours);
         }
         
-        const { data, error } = await supabase
+        // Criar o projeto primeiro
+        const { data: project, error: projectError } = await supabase
           .from('projects')
           .insert([projectData])
           .select()
           .single();
         
-        if (error) throw error;
+        if (projectError) throw projectError;
         
-        return res.json({ success: true, data, message: 'Projeto criado com sucesso' });
+        // Salvar os scope items se existirem
+        if (selected_scope_items && selected_scope_items.length > 0) {
+          const scopeItemsToInsert = selected_scope_items.map(item => ({
+            project_id: project.id,
+            scope_item_id: item.scope_item_id,
+            quantity: item.quantity || 1,
+            custom_hours: item.custom_hours,
+            custom_minutes: item.custom_minutes
+          }));
+          
+          const { error: scopeError } = await supabase
+            .from('project_scope_items')
+            .insert(scopeItemsToInsert);
+          
+          if (scopeError) {
+            console.error('Erro ao salvar scope items:', scopeError);
+            // Não falhar a criação do projeto por causa dos scope items
+          }
+        }
+        
+        return res.json({ success: true, data: project, message: 'Projeto criado com sucesso' });
       }
     }
 

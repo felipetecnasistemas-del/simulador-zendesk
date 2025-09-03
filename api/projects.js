@@ -21,23 +21,27 @@ module.exports = async (req, res) => {
     
     // Extrair ID da URL para requisições DELETE/PUT
     let projectId = id;
-    console.log('🔍 Debug DELETE - URL:', url);
-    console.log('🔍 Debug DELETE - Query:', query);
-    console.log('🔍 Debug DELETE - ID inicial:', projectId);
     
+    // Tentar extrair ID da URL se não estiver no query
     if (!projectId && url) {
-      const urlParts = url.split('/');
-      console.log('🔍 Debug DELETE - URL Parts:', urlParts);
+      // Remover query parameters da URL
+      const cleanUrl = url.split('?')[0];
+      const urlParts = cleanUrl.split('/');
       const lastPart = urlParts[urlParts.length - 1];
-      console.log('🔍 Debug DELETE - Last Part:', lastPart);
-      if (lastPart && !isNaN(lastPart)) {
-        projectId = lastPart;
-        console.log('🔍 Debug DELETE - Project ID extraído:', projectId);
+      
+      // Verificar se o último segmento é um número (ID)
+      if (lastPart && !isNaN(parseInt(lastPart))) {
+        projectId = parseInt(lastPart);
       }
     }
     
-    console.log('🔍 Debug DELETE - Project ID final:', projectId);
-    console.log('🔍 Debug DELETE - Method:', method);
+    // Fallback: tentar extrair do path completo
+    if (!projectId && url) {
+      const match = url.match(/\/api\/projects\/(\d+)/);
+      if (match) {
+        projectId = parseInt(match[1]);
+      }
+    }
 
     if (method === 'GET') {
       if (projectId) {

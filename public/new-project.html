@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Projeto - TECNA Sistemas</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .wizard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            padding: 40px 50px;
+        }
+        
+        .wizard-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 20px 0;
+            position: relative;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .wizard-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+        
+        .wizard-header p {
+            color: rgba(0, 0, 0, 0.6);
+            font-size: 1.2rem;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+        
+        .wizard-steps {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 60px;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: rgba(0, 0, 0, 0.6);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .step:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+        
+        .step.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+        }
+        
+        .step.completed {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-number {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .wizard-content {
+            min-height: 400px;
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        .project-type-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+            margin: 50px 0;
+        }
+        
+        .type-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .type-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .type-card:hover::before {
+            opacity: 1;
+        }
+        
+        .type-card.selected {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-color: #667eea;
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(102, 126, 234, 0.25);
+        }
+        
+        .type-card-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+            position: relative;
+            z-index: 1;
+        }
+        
+        .type-card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .type-card-description {
+            color: rgba(0, 0, 0, 0.7);
+            line-height: 1.6;
+            font-size: 1rem;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin: 50px 0;
+        }
+        
+        .product-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .product-card:hover::before {
+            opacity: 1;
+        }
+        
+        .product-card.selected {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-color: #667eea;
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(102, 126, 234, 0.25);
+        }
+        
+        .product-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+            position: relative;
+            z-index: 1;
+        }
+        
+        .product-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .product-description {
+            color: rgba(0, 0, 0, 0.7);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .agents-input-section {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .agents-input {
+            width: 100%;
+            max-width: 200px;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+        
+        .agents-input:focus {
+            border-color: rgba(102, 126, 234, 0.5);
+            outline: none;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .scope-preview {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+        }
+        
+        .extra-items-section {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .extra-items-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .extra-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .extra-item:last-child {
+            border-bottom: none;
+        }
+        
+        .extra-item-info {
+            flex: 1;
+        }
+        
+        .extra-item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .extra-item-time {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .extra-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .quantity-btn:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+        
+        .quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px;
+            font-weight: 600;
+        }
+        
+        .add-item-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .add-item-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .available-items-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            min-width: 300px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            margin-top: 4px;
+        }
+        
+        .dropdown-content.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .dropdown-item-time {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        /* Modal de Itens Extras */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 20px 24px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        
+        .modal-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        
+        .modal-item {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            background: #f8f9fa;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-item:hover {
+            border-color: #007bff;
+            background: #fff;
+        }
+        
+        .modal-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .modal-item-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .modal-item-time {
+            font-size: 12px;
+            color: #666;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        
+        .modal-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .modal-quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .modal-quantity-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .modal-quantity-btn:hover {
+            background: #f8f9fa;
+            border-color: #007bff;
+        }
+        
+        .modal-quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .modal-quantity-input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px;
+            font-size: 14px;
+        }
+        
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-summary {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-modal-cancel {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-modal-confirm {
+            padding: 8px 16px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-modal-confirm:hover {
+            background: #0056b3;
+        }
+        
+        .project-totals {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .totals-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .total-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+        
+        .total-label {
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .total-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        
+        .total-price {
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .totals-summary {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .total-value {
+                font-size: 18px;
+            }
+            
+            .total-price {
+                font-size: 22px;
+            }
+        }
+        
+        .scope-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .scope-table th,
+        .scope-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .scope-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .scope-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .wizard-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 48px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:disabled {
+            background: rgba(0, 0, 0, 0.1);
+            color: rgba(0, 0, 0, 0.4);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn:disabled::before {
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 32px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 1rem;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: rgba(102, 126, 234, 0.5);
+            outline: none;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .alert {
+            padding: 24px 28px;
+            border-radius: 16px;
+            margin: 32px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            font-weight: 500;
+        }
+        
+        .alert-info {
+            background: rgba(13, 202, 240, 0.1);
+            color: #0c5460;
+            border-color: rgba(13, 202, 240, 0.2);
+        }
+        
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+            border-color: rgba(255, 193, 7, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <div class="wizard-header">
+            <a href="index.html" class="back-button" title="Voltar à página inicial">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+            <h1>Criar Novo Projeto</h1>
+            <p>Siga os passos para configurar seu projeto Zendesk</p>
+        </div>
+        
+        <div class="wizard-steps">
+            <div class="step active" id="step-indicator-1">
+                <div class="step-number">1</div>
+                <span>Tipo de Projeto</span>
+            </div>
+            <div class="step" id="step-indicator-2">
+                <div class="step-number">2</div>
+                <span>Informações Básicas</span>
+            </div>
+            <div class="step" id="step-indicator-3">
+                <div class="step-number">3</div>
+                <span>Seleção de Produtos</span>
+            </div>
+            <div class="step" id="step-indicator-4">
+                <div class="step-number">4</div>
+                <span>Configuração</span>
+            </div>
+        </div>
+        
+        <div class="wizard-content">
+            <!-- Etapa 1: Tipo de Projeto -->
+            <div class="step-content active" id="step-1">
+                <h2>Escolha o Tipo de Projeto</h2>
+                <p>Selecione como você deseja configurar o escopo do projeto:</p>
+                
+                <div class="project-type-cards">
+                    <div class="type-card" onclick="selectProjectType('standard')" id="type-standard">
+                        <div class="type-card-icon">📋</div>
+                        <div class="type-card-title">Escopo Padrão</div>
+                        <div class="type-card-description">
+                            Use nossos escopos pré-definidos baseados no número de agentes e produtos selecionados
+                        </div>
+                    </div>
+                    
+                    <div class="type-card" onclick="selectProjectType('custom')" id="type-custom">
+                        <div class="type-card-icon">⚙️</div>
+                        <div class="type-card-title">Proposta Customizada</div>
+                        <div class="type-card-description">
+                            Configure manualmente o escopo através de perguntas personalizadas
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info" id="custom-alert" style="display: none;">
+                    <strong>Proposta Customizada:</strong> Você poderá responder perguntas específicas para cada produto e configurar um escopo personalizado.
+                </div>
+            </div>
+            
+            <!-- Etapa 2: Informações Básicas -->
+            <div class="step-content" id="step-2">
+                <h2>Informações do Projeto</h2>
+                <p>Preencha as informações básicas do projeto:</p>
+                
+                <form id="project-basic-info">
+                    <div class="form-group">
+                        <label for="client-name">Nome do Cliente:</label>
+                        <input type="text" id="client-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-description">Descrição do Projeto:</label>
+                        <input type="text" id="project-description" placeholder="Opcional">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="client-type">Tipo do Cliente:</label>
+                        <select id="client-type" required>
+                            <option value="">Selecione o tipo</option>
+                            <option value="base">Base</option>
+                            <option value="new-logo">New Logo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-user">Usuário Responsável:</label>
+                        <select id="project-user" required>
+                            <option value="">Selecione um usuário</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Etapa 3: Seleção de Produtos -->
+            <div class="step-content" id="step-3">
+                <h2>Selecione os Produtos</h2>
+                <p>Escolha os produtos Zendesk que serão implementados:</p>
+                
+                <div class="products-grid" id="products-grid">
+                    <!-- Produtos serão carregados aqui -->
+                </div>
+            </div>
+            
+            <!-- Etapa 4: Configuração -->
+            <div class="step-content" id="step-4">
+                <h2>Configuração do Projeto</h2>
+                <div id="configuration-content">
+                    <!-- Conteúdo será carregado dinamicamente baseado nos produtos selecionados -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="wizard-actions">
+            <button class="btn btn-secondary" id="prev-btn" onclick="previousStep()" style="display: none;">← Anterior</button>
+            <div></div>
+            <button class="btn btn-primary" id="next-btn" onclick="nextStep()" disabled>Próximo →</button>
+        </div>
+    </div>
+
+    <!-- Modal de Itens Extras -->
+    <div id="extraItemsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Adicionar Itens Extras</h3>
+                <button class="modal-close" onclick="closeExtraItemsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="modalItemsGrid" class="modal-items-grid">
+                    <!-- Itens serão carregados dinamicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-summary">
+                    <span id="modalSummary">0 itens selecionados</span>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-modal-cancel" onclick="closeExtraItemsModal()">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="confirmExtraItems()">Adicionar Itens</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="new-project.js"></script>
+</body>
+</html>

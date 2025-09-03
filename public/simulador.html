@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Projeto Zendesk</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos para Modelo de Faturamento */
+        .billing-model-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .billing-model-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2em;
+        }
+        
+        .billing-model-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .billing-option {
+            position: relative;
+        }
+        
+        .billing-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .billing-label {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .billing-label:hover {
+            border-color: #007bff;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+        }
+        
+        .billing-option input[type="radio"]:checked + .billing-label {
+            border-color: #007bff;
+            background-color: #f0f8ff;
+            box-shadow: 0 2px 12px rgba(0, 123, 255, 0.2);
+        }
+        
+        .billing-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .billing-content h4 {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+        
+        .billing-content p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        
+        /* Estilos para Seção de Produtos */
+        .products-selection-section {
+            margin-bottom: 20px;
+        }
+        
+        .products-selection-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2em;
+        }
+        
+        /* Estilos para Perguntas Dinâmicas */
+        .dynamic-questions-section {
+            margin: 30px 0;
+            padding: 25px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .dynamic-questions-section h3 {
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.3em;
+        }
+        
+        .questions-subtitle {
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 0.95em;
+        }
+        
+        .questions-list {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .question-item {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .question-item h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        
+        .question-item select,
+        .question-item input[type="number"],
+        .question-item input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .question-item select:focus,
+        .question-item input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+        }
+        
+        .question-meta {
+            margin-top: 8px;
+            font-size: 0.85em;
+            color: #666;
+        }
+        
+        .complexity-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            background-color: #6f42c1;
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .billing-model-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .billing-label {
+                padding: 15px;
+            }
+            
+            .billing-icon {
+                font-size: 1.5em;
+                margin-right: 12px;
+            }
+        }
+    </style>
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.45.4"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="professional-header">
+            <div class="header-container">
+                <div class="header-brand">
+                    <div class="brand-logo">
+                        <div class="logo-icon">Z</div>
+                        <div class="brand-text">
+                            <h1>Zendesk Simulator</h1>
+                            <span class="brand-subtitle">Simulador de Projetos e Horas</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-back" onclick="goToHome()" title="Voltar à página inicial">
+                        ← Voltar
+                    </button>
+                    <button class="btn-config" onclick="toggleConfigModal()" title="Configurações">
+                        ⚙️ Config
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Informações do Projeto -->
+        <div id="projectInfo" class="project-info-header" style="display: none;">
+            <div class="project-info-content">
+                <div class="project-title">
+                    <div class="project-title-left">
+                        <h2 id="projectName">Nome do Projeto</h2>
+                        <span id="projectId" class="project-id">#ID</span>
+                    </div>
+                    <div class="project-actions">
+                        <button class="btn-delete-project" onclick="confirmDeleteProject()" title="Excluir Projeto">
+                            🗑️ Excluir
+                        </button>
+                    </div>
+                </div>
+                <div class="project-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Cliente:</span>
+                        <span id="clientName" class="detail-value">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Tipo:</span>
+                        <span id="clientType" class="detail-value">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Cliente Tecna:</span>
+                        <span id="isTecnaClient" class="detail-value">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Admin Zendesk:</span>
+                        <span id="hasZendeskAdmin" class="detail-value">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="tabs">
+            <button class="tab-button active" onclick="showTab('products')">Produtos</button>
+            <button class="tab-button" onclick="showTab('project-scope')">Escopo do Projeto</button>
+        </nav>
+
+        <div id="products" class="tab-content active">
+            <div class="products-header">
+                <h2>Configuração do Projeto</h2>
+                <p class="products-subtitle">Configure o modelo de faturamento e selecione os produtos do seu projeto</p>
+            </div>
+            
+            <!-- Seção de Modelo de Faturamento -->
+            <div class="billing-model-section">
+                <h3>Modelo de Faturamento</h3>
+                <div class="billing-model-options">
+                    <div class="billing-option">
+                        <input type="radio" id="time-materials" name="billing_model" value="time_materials" onchange="onBillingModelChange()">
+                        <label for="time-materials" class="billing-label">
+                            <div class="billing-icon">⏱️</div>
+                            <div class="billing-content">
+                                <h4>Time & Materials</h4>
+                                <p>Cobrança por hora trabalhada com perguntas dinâmicas para cálculo preciso</p>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="billing-option">
+                        <input type="radio" id="escopo-fechado" name="billing_model" value="escopo_fechado" onchange="onBillingModelChange()">
+                        <label for="escopo-fechado" class="billing-label">
+                            <div class="billing-icon">📦</div>
+                            <div class="billing-content">
+                                <h4>Escopo Fechado</h4>
+                                <p>Pacote fixo de horas baseado na complexidade do projeto</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seção de produtos removida - não é mais necessária -->
+            
+            <!-- Seção de Perguntas Dinâmicas -->
+            <div class="dynamic-questions-section" id="dynamicQuestionsSection" style="display: none;">
+                <h3>Questionário do Projeto</h3>
+                <p class="questions-subtitle">Responda às perguntas abaixo para calcular a estimativa do projeto</p>
+                <form id="questionsForm" class="questions-form">
+                    <div id="questionsList" class="questions-list">
+                        <!-- Perguntas serão carregadas dinamicamente -->
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Seção de Geração de Escopo -->
+            <div class="generate-scope-section" id="generateScopeSection" style="display: none;">
+                <button type="button" class="generate-scope-btn" onclick="generateScope()">
+                    <span class="btn-icon">📊</span>
+                    Gerar Escopo do Projeto
+                </button>
+            </div>
+            </div>
+        </div>
+
+        <div id="project-scope" class="tab-content">
+            <div class="scope-section">
+                <h2>Escopo do Projeto</h2>
+                <div id="scope-results">
+                    <p>Selecione e configure os produtos na aba "Produtos" e clique em "Gerar Escopo do Projeto" para ver os resultados.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Configuração -->
+        <div id="config-modal" class="config-modal">
+            <div class="config-modal-content">
+                <div class="config-modal-header">
+                    <h2>Configurações do Sistema</h2>
+                    <button class="config-close" onclick="toggleConfigModal()">&times;</button>
+                </div>
+                
+                <!-- Abas de Configuração -->
+                <div class="config-tabs">
+                    <button class="config-tab-button active" onclick="openConfigTab(event, 'estimates-tab')">Estimativas</button>
+                    <button class="config-tab-button" onclick="openConfigTab(event, 'users-tab')">Usuários</button>
+                </div>
+                
+                <!-- Aba de Estimativas -->
+                <div id="estimates-tab" class="config-tab-content active">
+                    <div class="config-section">
+                        <h3>Horas por Item</h3>
+                        <div class="config-grid" id="config-grid">
+                            <!-- Configurações serão carregadas via JavaScript -->
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="resetToDefaults()">Restaurar Padrões</button>
+                            <button type="button" class="btn-primary" onclick="saveConfiguration()">Salvar Configuração</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Aba de Usuários -->
+                <div id="users-tab" class="config-tab-content">
+                    <div class="config-section">
+                        <h3>Gerenciar Usuários</h3>
+                        
+                        <!-- Formulário de Cadastro de Usuário -->
+                        <div class="user-form-section">
+                            <h4>Adicionar Novo Usuário</h4>
+                            <form id="user-form" class="user-form">
+                                <div class="form-group">
+                                    <label for="user-name">Nome Completo:</label>
+                                    <input type="text" id="user-name" name="name" required placeholder="Digite o nome completo">
+                                </div>
+                                <div class="form-group">
+                                    <label for="user-email">E-mail:</label>
+                                    <input type="email" id="user-email" name="email" required placeholder="Digite o e-mail">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary">Adicionar Usuário</button>
+                                    <button type="button" class="btn-secondary" onclick="clearUserForm()">Limpar</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Lista de Usuários -->
+                        <div class="users-list-section">
+                            <h4>Usuários Cadastrados</h4>
+                            <div id="users-list" class="users-list">
+                                <!-- Lista será carregada via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script>
+        // Variáveis globais para gerenciar estado
+        let currentBillingModel = null;
+        let selectedProducts = [];
+        let loadedQuestions = [];
+        let projectAnswers = {};
+        
+        // Função para inicializar eventos do modelo de faturamento
+        function initializeBillingModel() {
+            const billingRadios = document.querySelectorAll('input[name="billing_model"]');
+            billingRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    currentBillingModel = this.value;
+                    console.log('Modelo de faturamento selecionado:', currentBillingModel);
+                    
+                    // Recarregar perguntas se já houver produtos selecionados
+                    if (selectedProducts.length > 0) {
+                        loadDynamicQuestions();
+                    }
+                });
+            });
+        }
+        
+        // Função para carregar perguntas dinâmicas
+        async function loadDynamicQuestions() {
+            if (!currentBillingModel || selectedProducts.length === 0) {
+                document.getElementById('dynamic-questions').style.display = 'none';
+                return;
+            }
+            
+            try {
+                const questionsContainer = document.getElementById('questionsList');
+                questionsContainer.innerHTML = '<p>Carregando perguntas...</p>';
+                
+                // Buscar perguntas para cada produto selecionado
+                let allQuestions = [];
+                
+                for (const productId of selectedProducts) {
+                    const { data: questions, error } = await supabase
+                        .from('questions')
+                        .select(`
+                            *,
+                            question_options(*)
+                        `)
+                        .eq('product_id', productId)
+                        .eq('billing_model', currentBillingModel)
+                        .order('created_at');
+                    
+                    if (error) {
+                        console.error('Erro ao carregar perguntas:', error);
+                        continue;
+                    }
+                    
+                    if (questions && questions.length > 0) {
+                        allQuestions = allQuestions.concat(questions);
+                    }
+                }
+                
+                loadedQuestions = allQuestions;
+                renderQuestions(allQuestions);
+                
+                // Mostrar seção de perguntas se houver perguntas
+                document.getElementById('dynamic-questions').style.display = 
+                    allQuestions.length > 0 ? 'block' : 'none';
+                    
+            } catch (error) {
+                console.error('Erro ao carregar perguntas dinâmicas:', error);
+                document.getElementById('questionsList').innerHTML = 
+                    '<p>Erro ao carregar perguntas. Tente novamente.</p>';
+            }
+        }
+        
+        // Função para renderizar perguntas na interface
+        function renderQuestions(questions) {
+            const container = document.getElementById('questionsList');
+            
+            if (!questions || questions.length === 0) {
+                container.innerHTML = '<p>Nenhuma pergunta configurada para este modelo de faturamento.</p>';
+                return;
+            }
+            
+            let html = '';
+            
+            questions.forEach(question => {
+                html += `
+                    <div class="question-item" data-question-id="${question.id}">
+                        <h4>${question.text}</h4>
+                        ${renderQuestionInput(question)}
+                        <div class="question-meta">
+                            Tipo: ${getQuestionTypeLabel(question.type)}
+                            ${question.project_level ? `<span class="complexity-indicator">Pergunta de Complexidade</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Adicionar event listeners para as respostas
+            addQuestionEventListeners();
+        }
+        
+        // Função para renderizar input baseado no tipo da pergunta
+        function renderQuestionInput(question) {
+            const questionId = question.id;
+            const currentAnswer = projectAnswers[questionId];
+            
+            switch (question.type) {
+                case 'dropdown':
+                    let options = '<option value="">Selecione uma opção</option>';
+                    if (question.question_options) {
+                        question.question_options.forEach(option => {
+                            const selected = currentAnswer && currentAnswer.option_id === option.id ? 'selected' : '';
+                            options += `<option value="${option.id}" ${selected}>${option.label}</option>`;
+                        });
+                    }
+                    return `<select name="question_${questionId}" data-question-type="dropdown">${options}</select>`;
+                    
+                case 'numeric':
+                    const numValue = currentAnswer ? currentAnswer.numeric_value : '';
+                    return `<input type="number" name="question_${questionId}" data-question-type="numeric" 
+                            placeholder="Digite um número" value="${numValue}" min="0" step="0.01">`;
+                    
+                case 'text':
+                    const textValue = currentAnswer ? currentAnswer.answer : '';
+                    return `<input type="text" name="question_${questionId}" data-question-type="text" 
+                            placeholder="Digite sua resposta" value="${textValue}">`;
+                    
+                default:
+                    return '<p>Tipo de pergunta não suportado</p>';
+            }
+        }
+        
+        // Função para obter label do tipo de pergunta
+        function getQuestionTypeLabel(type) {
+            const labels = {
+                'dropdown': 'Lista Suspensa',
+                'numeric': 'Numérico',
+                'text': 'Texto'
+            };
+            return labels[type] || type;
+        }
+        
+        // Função para adicionar event listeners às perguntas
+        function addQuestionEventListeners() {
+            const inputs = document.querySelectorAll('#questionsList input, #questionsList select');
+            
+            inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    saveQuestionAnswer(this);
+                });
+            });
+        }
+        
+        // Função para salvar resposta de pergunta
+        function saveQuestionAnswer(input) {
+            const questionId = input.name.replace('question_', '');
+            const questionType = input.dataset.questionType;
+            
+            let answerData = {
+                question_id: questionId,
+                answer: null,
+                numeric_value: null,
+                option_id: null
+            };
+            
+            switch (questionType) {
+                case 'dropdown':
+                    if (input.value) {
+                        answerData.option_id = input.value;
+                    }
+                    break;
+                    
+                case 'numeric':
+                    if (input.value) {
+                        answerData.numeric_value = parseFloat(input.value);
+                    }
+                    break;
+                    
+                case 'text':
+                    if (input.value.trim()) {
+                        answerData.answer = input.value.trim();
+                    }
+                    break;
+            }
+            
+            // Salvar no objeto local
+            projectAnswers[questionId] = answerData;
+            
+            console.log('Resposta salva:', answerData);
+        }
+        
+        // Função para salvar todas as respostas no banco
+        async function saveProjectAnswers(projectId) {
+            if (!projectId || Object.keys(projectAnswers).length === 0) {
+                return;
+            }
+            
+            try {
+                // Primeiro, deletar respostas existentes para este projeto
+                await supabase
+                    .from('project_answers')
+                    .delete()
+                    .eq('project_id', projectId);
+                
+                // Preparar dados para inserção
+                const answersToInsert = [];
+                
+                Object.values(projectAnswers).forEach(answer => {
+                    if (answer.answer || answer.numeric_value || answer.option_id) {
+                        answersToInsert.push({
+                            project_id: projectId,
+                            question_id: answer.question_id,
+                            answer: answer.answer,
+                            numeric_value: answer.numeric_value,
+                            option_id: answer.option_id
+                        });
+                    }
+                });
+                
+                // Inserir novas respostas
+                if (answersToInsert.length > 0) {
+                    const { error } = await supabase
+                        .from('project_answers')
+                        .insert(answersToInsert);
+                    
+                    if (error) {
+                        console.error('Erro ao salvar respostas:', error);
+                        throw error;
+                    }
+                }
+                
+                console.log('Respostas salvas com sucesso');
+                
+            } catch (error) {
+                console.error('Erro ao salvar respostas do projeto:', error);
+                throw error;
+            }
+        }
+        
+        // Modificar função existente de seleção de produtos
+        function selectProduct(productId, element) {
+            const isSelected = element.classList.contains('selected');
+            
+            if (isSelected) {
+                element.classList.remove('selected');
+                selectedProducts = selectedProducts.filter(id => id !== productId);
+            } else {
+                element.classList.add('selected');
+                if (!selectedProducts.includes(productId)) {
+                    selectedProducts.push(productId);
+                }
+            }
+            
+            updateSelectedProducts();
+            
+            // Recarregar perguntas se modelo de faturamento estiver selecionado
+            if (currentBillingModel) {
+                loadDynamicQuestions();
+            }
+        }
+        
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeBillingModel();
+        });
+    </script>
+</body>
+</html>

@@ -1,43 +1,5 @@
 {
-  "outputDirectory": ".",
-
   "rewrites": [
-    {
-      "source": "/api/users",
-      "destination": "/api/users.js"
-    },
-    {
-      "source": "/api/projects",
-      "destination": "/api/projects.js"
-    },
-    {
-      "source": "/api/projects/(.*)",
-      "destination": "/api/projects.js"
-    },
-    {
-      "source": "/api/scope-items",
-      "destination": "/api/scope-items.js"
-    },
-    {
-      "source": "/api/scope-items/(.*)",
-      "destination": "/api/scope-items.js?id=$1"
-    },
-    {
-      "source": "/api/default-projects(.*)",
-      "destination": "/api/default-projects.js"
-    },
-    {
-      "source": "/api/products",
-      "destination": "/api/products.js"
-    },
-    {
-      "source": "/api/questions",
-      "destination": "/api/questions.js"
-    },
-    {
-      "source": "/api/advanced-questions",
-      "destination": "/api/advanced-questions.js"
-    },
     {
       "source": "/simulador",
       "destination": "/simulador.html"

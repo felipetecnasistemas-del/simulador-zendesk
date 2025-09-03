@@ -126,6 +126,31 @@ body {
 }
 
 /* Responsive Design */
+/* Tablets */
+@media (max-width: 1024px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .projects-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 15px;
+    }
+    
+    .project-card {
+        padding: 18px;
+    }
+    
+    .form-section {
+        padding: 18px;
+    }
+    
+    .config-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
     .header-container {
         flex-direction: column;
@@ -139,6 +164,16 @@ body {
     
     .header-actions {
         justify-content: center;
+    }
+    
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .project-card {
+        padding: 15px;
+        margin: 0 5px;
     }
 }
 
@@ -993,6 +1028,45 @@ body {
 }
 
 /* Responsividade */
+/* Tablets */
+@media (max-width: 1024px) {
+    .container {
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .config-button {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .tab-content {
+        padding: 25px;
+    }
+    
+    .form-section {
+        padding: 20px;
+    }
+    
+    .config-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    
+    .scope-table {
+        font-size: 0.95rem;
+    }
+    
+    .config-modal-content {
+        width: 90%;
+        max-height: 85vh;
+    }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
     .container {
         padding: 10px;
@@ -1029,11 +1103,15 @@ body {
     
     .scope-table {
         font-size: 0.9rem;
+        overflow-x: auto;
+        display: block;
+        white-space: nowrap;
     }
     
     .scope-table th,
     .scope-table td {
         padding: 8px 10px;
+        min-width: 100px;
     }
     
     .config-modal-content {
@@ -1490,6 +1568,44 @@ body {
 }
 
 /* Responsividade para página inicial */
+/* Tablets */
+@media (max-width: 1024px) {
+    .home-content {
+        padding: 0 20px;
+        gap: 35px;
+    }
+    
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .project-form-container,
+    .info-panel {
+        padding: 25px;
+    }
+    
+    .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    
+    .feature-card {
+        padding: 22px;
+    }
+    
+    .section-header h2 {
+        font-size: 22px;
+    }
+    
+    .questionnaire-modal-content {
+        width: 85%;
+        margin: 7.5% auto;
+        max-height: 85vh;
+    }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
     .home-content {
         padding: 0 15px;
@@ -1547,12 +1663,15 @@ body {
     .questionnaire-footer {
         padding: 15px 20px;
         flex-direction: column;
+        gap: 10px;
     }
     
     .btn-secondary,
     .btn-primary {
         width: 100%;
         padding: 12px;
+        font-size: 16px;
+        min-height: 44px;
     }
     
     .success-toast {
@@ -1567,7 +1686,12 @@ body {
     }
 }
 
+/* Dispositivos móveis pequenos */
 @media (max-width: 480px) {
+    .container {
+        padding: 8px;
+    }
+    
     header h1 {
         font-size: 1.5rem;
     }
@@ -1577,8 +1701,23 @@ body {
         height: 40px;
     }
     
-    .form-group input[type="number"] {
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 0 5px;
+    }
+    
+    .project-card {
+        padding: 12px;
+        margin: 0;
+    }
+    
+    .form-group input[type="number"],
+    .form-group input[type="text"],
+    .form-group select {
         max-width: 100%;
+        font-size: 16px;
+        padding: 12px;
     }
     
     .btn-primary,
@@ -1586,10 +1725,49 @@ body {
         display: block;
         width: 100%;
         margin: 10px 0;
+        font-size: 16px;
+        min-height: 48px;
+        padding: 12px 16px;
     }
     
     .config-modal-header h2 {
         font-size: 1.4rem;
+    }
+    
+    .tab-content {
+        padding: 15px;
+    }
+    
+    .form-section {
+        padding: 12px;
+    }
+    
+    .scope-table {
+        font-size: 0.85rem;
+    }
+    
+    .scope-table th,
+    .scope-table td {
+        padding: 6px 8px;
+        min-width: 80px;
+    }
+    
+    .home-content {
+        padding: 0 10px;
+        gap: 25px;
+    }
+    
+    .project-form-container,
+    .info-panel {
+        padding: 15px;
+    }
+    
+    .feature-card {
+        padding: 15px;
+    }
+    
+    .section-header h2 {
+        font-size: 18px;
     }
 }
 

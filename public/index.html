@@ -82,6 +82,78 @@
             margin-bottom: 20px;
         }
         
+        /* Responsividade específica da página */
+        @media (max-width: 1024px) {
+            .projects-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 15px;
+            }
+            
+            .project-card {
+                padding: 18px;
+            }
+            
+            .header-text h1 {
+                font-size: 1.8rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .project-card {
+                padding: 15px;
+                margin: 0 5px;
+            }
+            
+            .header-text h1 {
+                font-size: 1.6rem;
+            }
+            
+            .config-icon {
+                width: 36px;
+                height: 36px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .projects-list-container {
+                padding: 8px;
+            }
+            
+            .projects-grid {
+                gap: 10px;
+                padding: 0 5px;
+            }
+            
+            .project-card {
+                padding: 12px;
+                margin: 0;
+            }
+            
+            .header-text h1 {
+                font-size: 1.4rem;
+            }
+            
+            .subtitle {
+                font-size: 0.85rem;
+            }
+            
+            .config-icon {
+                width: 32px;
+                height: 32px;
+            }
+        }
+        
         .project-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);

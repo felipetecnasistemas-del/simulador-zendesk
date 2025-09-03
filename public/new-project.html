@@ -764,7 +764,36 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         
+        /* Responsividade */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .form-container {
+                padding: 25px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .scope-table th,
+            .scope-table td {
+                padding: 10px 12px;
+            }
+        }
+        
         @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
             .totals-summary {
                 flex-direction: column;
                 gap: 15px;
@@ -776,6 +805,62 @@
             
             .total-price {
                 font-size: 22px;
+            }
+            
+            .scope-table {
+                font-size: 0.9rem;
+                overflow-x: auto;
+                display: block;
+                white-space: nowrap;
+            }
+            
+            .scope-table th,
+            .scope-table td {
+                padding: 8px 10px;
+                min-width: 100px;
+            }
+            
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                margin: 5px 0;
+                font-size: 16px;
+                min-height: 44px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+            
+            .form-container {
+                padding: 15px;
+            }
+            
+            .scope-table {
+                font-size: 0.85rem;
+            }
+            
+            .scope-table th,
+            .scope-table td {
+                padding: 6px 8px;
+                min-width: 80px;
+            }
+            
+            .total-value {
+                font-size: 16px;
+            }
+            
+            .total-price {
+                font-size: 20px;
+            }
+            
+            .btn-primary,
+            .btn-secondary {
+                font-size: 16px;
+                min-height: 48px;
+                padding: 12px 16px;
             }
         }
         

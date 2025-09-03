@@ -21,13 +21,23 @@ module.exports = async (req, res) => {
     
     // Extrair ID da URL para requisições DELETE/PUT
     let projectId = id;
+    console.log('🔍 Debug DELETE - URL:', url);
+    console.log('🔍 Debug DELETE - Query:', query);
+    console.log('🔍 Debug DELETE - ID inicial:', projectId);
+    
     if (!projectId && url) {
       const urlParts = url.split('/');
+      console.log('🔍 Debug DELETE - URL Parts:', urlParts);
       const lastPart = urlParts[urlParts.length - 1];
+      console.log('🔍 Debug DELETE - Last Part:', lastPart);
       if (lastPart && !isNaN(lastPart)) {
         projectId = lastPart;
+        console.log('🔍 Debug DELETE - Project ID extraído:', projectId);
       }
     }
+    
+    console.log('🔍 Debug DELETE - Project ID final:', projectId);
+    console.log('🔍 Debug DELETE - Method:', method);
 
     if (method === 'GET') {
       if (projectId) {

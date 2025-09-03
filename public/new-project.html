@@ -41,19 +41,19 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 24px;
+            border-radius: 16px;
             box-shadow: 
-                0 32px 64px rgba(0, 0, 0, 0.1),
+                0 16px 32px rgba(0, 0, 0, 0.1),
                 0 0 0 1px rgba(255, 255, 255, 0.05),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
             overflow: hidden;
-            padding: 40px 50px;
+            padding: 24px 30px;
         }
         
         .wizard-header {
             text-align: center;
-            margin-bottom: 50px;
-            padding: 20px 0;
+            margin-bottom: 20px;
+            padding: 8px 0;
             position: relative;
         }
         
@@ -81,43 +81,43 @@
         }
         
         .wizard-header h1 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 800;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             letter-spacing: -0.02em;
         }
         
         .wizard-header p {
             color: rgba(0, 0, 0, 0.6);
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 400;
-            line-height: 1.6;
+            line-height: 1.5;
         }
         
         .wizard-steps {
             display: flex;
             justify-content: center;
-            margin-bottom: 60px;
-            gap: 32px;
+            margin-bottom: 24px;
+            gap: 12px;
             flex-wrap: wrap;
         }
         
         .step {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 16px 24px;
+            gap: 8px;
+            padding: 12px 16px;
             border-radius: 50px;
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: rgba(0, 0, 0, 0.6);
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
@@ -140,15 +140,15 @@
         }
         
         .step-number {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             transition: all 0.3s ease;
         }
         
@@ -163,7 +163,7 @@
         }
         
         .wizard-content {
-            min-height: 400px;
+            min-height: 300px;
         }
         
         .step-content {
@@ -176,21 +176,21 @@
         
         .project-type-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 32px;
-            margin: 50px 0;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
         }
         
         .type-card {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            padding: 40px 32px;
+            border-radius: 12px;
+            padding: 20px 16px;
             text-align: center;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
         }

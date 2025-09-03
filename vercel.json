@@ -1,28 +1,6 @@
 {
   "outputDirectory": ".",
-  "functions": {
-    "api/users.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/scope-items.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/default-projects.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/projects.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/products.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/questions.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/advanced-questions.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
+
   "rewrites": [
     {
       "source": "/api/users",
